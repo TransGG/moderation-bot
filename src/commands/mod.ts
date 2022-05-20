@@ -6,7 +6,7 @@ export default new ResponsiveSlashCommandBuilder()
   .addSubcommand(new ResponsiveSlashCommandSubcommandBuilder()
     .setName('user')
     .setDescription('Take moderation action on a user')
-    .setResponse((_client, interaction) => {
+    .setResponse((interaction, _client, _command) => {
       if (interaction.isCommand())
         interaction.reply({ content: 'Not Implemented', ephemeral: true });
     })

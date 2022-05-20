@@ -1,25 +1,28 @@
 // imports
 import chalk from 'chalk';
 import type { Client, Interaction } from 'discord.js';
-import type { ResponsiveSlashCommandBuilder } from './commandBuilders.js';
+import type { SlashCommandBuilder } from '@discordjs/builders';
+import { ResponsiveSlashCommandBuilder } from './commandBuilders.js';
 import registerSlashCommands from './registerSlashCommands.js';
 
-export type ResponsiveSlashCommandBuildersStatic = Promise<ResponsiveSlashCommandBuilder[]> | ResponsiveSlashCommandBuilder[];
-export type ResponsiveSlashCommandBuildersGetter = () => Promise<ResponsiveSlashCommandBuildersStatic> | ResponsiveSlashCommandBuildersStatic;
-export type ResponsiveSlashCommandBuilders = ResponsiveSlashCommandBuildersStatic | ResponsiveSlashCommandBuildersGetter;
+export type SlashCommandBuildersStatic = Promise<SlashCommandBuilder[]> | SlashCommandBuilder[];
+export type SlashCommandBuildersGetter = () => Promise<SlashCommandBuildersStatic> | SlashCommandBuildersStatic;
+export type SlashCommandBuilders = SlashCommandBuildersStatic | SlashCommandBuildersGetter;
 
-async function getCommands(input: ResponsiveSlashCommandBuilders) {
+async function getCommands(input: SlashCommandBuilders) {
   return typeof input === 'function' ? await input() : await input;
 }
 
-async function commandHandler(client: Client, commandsOrCommandsGetter: ResponsiveSlashCommandBuilders) {
+async function commandHandler(client: Client, commandsOrCommandsGetter: SlashCommandBuilders) {
   // get commands
   let commands = await getCommands(commandsOrCommandsGetter);
 
   function respond(interaction: Interaction) {
-    if (interaction.isCommand())
-      return commands.find(command => command.name === interaction.commandName)?.respond?.(client, interaction);
-
+    if (interaction.isCommand()) {
+      const COMMAND = commands.find(command => command.name === interaction.commandName);
+      if (COMMAND instanceof ResponsiveSlashCommandBuilder)
+        return COMMAND.respond(interaction, client)
+    }
     return;
   }
 
