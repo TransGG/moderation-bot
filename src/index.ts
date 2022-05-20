@@ -9,34 +9,40 @@ if (HOT_RELOAD) console.warn(chalk.yellowBright('Hot reloading commands is enabl
 import fs from 'node:fs'
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import chokidar from 'chokidar';
 
 import chalk from "chalk";
 import { Client } from "discord.js";
 import commandHandler from './commandHandling/commandHandler.js';
-import type { ResponsiveSlashCommandBuilder } from './commandHandling/command.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
 
 // define client
 let client = new Client({ intents: [] })
   .once('ready', () => console.log(chalk.greenBright('Logged in')));
 
 // handle slash commands
+const COMMANDS_DIRECTORY = path.join(dirname(fileURLToPath(import.meta.url)), 'commands');
 async function loadCommands() {
   // await for all promises in the Array<Promise<ResponsiveSlashCommandBuilder>> to be resolved
-  return <ResponsiveSlashCommandBuilder[]>await Promise.all(
-    // turn the url of index.js to a path
-    // get the directory of the path
-    // path.join(<directory of index.js>, 'commands')
+  return (await Promise.all(
     // get all files in the commands directory
-    fs.readdirSync(path.join(dirname(fileURLToPath(import.meta.url)), 'commands'))
+    fs.readdirSync(COMMANDS_DIRECTORY)
       // filter out non-js files
       .filter(file => file.endsWith('.js'))
       // add ?v=<timestamp> to the end of the file path for hot reloading
-      // import the default export of the js files, this should be a ResponsiveSlashCommandBuilder
       // map() will return Array<Promise<ResponsiveSlashCommandBuilder>>
-      .map(async (file) => (await import(`./commands/${file}?v=${Date.now()}`)).default)
-  );
+      .map(async file => (await import(`./commands/${file}?v=${Date.now()}`)).default)
+    // return only SlashCommandBuilders
+  )).filter(module => module instanceof SlashCommandBuilder);
 }
-await commandHandler(client, HOT_RELOAD ? loadCommands : loadCommands());
+
+const RELOAD = await commandHandler(client, loadCommands);
+if (HOT_RELOAD)
+  // reload on file changes in the commands directory
+  chokidar.watch(COMMANDS_DIRECTORY).on('change', async path => {
+    if (!path.endsWith('.js')) return;
+    await RELOAD();
+  });
 
 // login
 console.log(chalk.cyanBright('Logging in'));

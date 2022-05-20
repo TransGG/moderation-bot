@@ -2,21 +2,21 @@
 import type { Client, Interaction } from 'discord.js';
 import { SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from "@discordjs/builders";
 
-export class ResponsiveSlashCommandSubcommandGroupBuilder extends SlashCommandSubcommandGroupBuilder {
-  public readonly respond?= async (client: Client, interaction: Interaction) => {
-    if (interaction.isCommand())
-      return await (<ResponsiveSlashCommandSubcommandBuilder>this.options.find(c =>
-        (<SlashCommandSubcommandBuilder>c).name === interaction.options.getSubcommand()
-      ))?.response?.(client, interaction);
-  }
-};
-
 export class ResponsiveSlashCommandSubcommandBuilder extends SlashCommandSubcommandBuilder {
   public readonly response?: (client: Client, interaction: Interaction) => void | Promise<void>;
 
   setResponse(response: (client: Client, interaction: Interaction) => void | Promise<void>) {
     Reflect.set(this, 'response', response);
     return this;
+  }
+};
+
+export class ResponsiveSlashCommandSubcommandGroupBuilder extends SlashCommandSubcommandGroupBuilder {
+  public readonly respond?= async (client: Client, interaction: Interaction) => {
+    if (interaction.isCommand())
+      return await (<ResponsiveSlashCommandSubcommandBuilder>this.options.find(c =>
+        (<SlashCommandSubcommandBuilder>c).name === interaction.options.getSubcommand()
+      ))?.response?.(client, interaction);
   }
 };
 
