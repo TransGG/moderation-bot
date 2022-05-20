@@ -1,7 +1,7 @@
 // imports
 import chalk from 'chalk';
 import type { Client, Interaction } from 'discord.js';
-import type { ResponsiveSlashCommandBuilder } from './command.js';
+import type { ResponsiveSlashCommandBuilder } from './commandBuilders.js';
 import registerSlashCommands from './registerSlashCommands.js';
 
 export type ResponsiveSlashCommandBuildersStatic = Promise<ResponsiveSlashCommandBuilder[]> | ResponsiveSlashCommandBuilder[];

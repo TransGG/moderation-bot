@@ -1,4 +1,4 @@
-import { ResponsiveSlashCommandBuilder, ResponsiveSlashCommandSubcommandBuilder } from "../commandHandling/command.js";
+import { ResponsiveSlashCommandBuilder, ResponsiveSlashCommandSubcommandBuilder } from "../commandHandling/commandBuilders.js";
 
 export default new ResponsiveSlashCommandBuilder()
   .setName('mod')
