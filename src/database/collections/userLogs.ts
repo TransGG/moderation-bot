@@ -4,7 +4,7 @@ import DATABASE from "../database.js";
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
 
 class ModerationLog {
-  logID: EpochTimeStamp = Date.now();
+  timestamp: EpochTimeStamp = Date.now();
   userState?: User;
 
   moderator: Snowflake;

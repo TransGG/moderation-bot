@@ -1,11 +1,7 @@
-import { MessageEmbed, User } from "discord.js";
+import moderationLogs from "./embeds/moderationLogs.js";
 
 const EMBEDS = {
-  moderationLogs(user: User) {
-    return new MessageEmbed()
-      .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
-      .setDescription(`> <@${user.id}>`);;
-  }
+  moderationLogs
 }
 
 export default EMBEDS;

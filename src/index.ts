@@ -6,18 +6,14 @@ import chokidar from 'chokidar';
 import { getConfig } from './utils.js';
 
 import chalk from "chalk";
-import { Client, Intents } from "discord.js";
+import { Client } from "discord.js";
 import commandHandler from './commandHandling/commandHandler.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 const CONFIG = await getConfig();
 // define client
-let client = new Client({
-  intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MEMBERS
-  ]
-}).once('ready', () => console.log(chalk.greenBright('Logged in')));
+let client = new Client({ intents: [] })
+  .once('ready', () => console.log(chalk.greenBright('Logged in')));
 
 // handle slash commands
 const COMMANDS_DIRECTORY = path.join(dirname(fileURLToPath(import.meta.url)), 'commands');
