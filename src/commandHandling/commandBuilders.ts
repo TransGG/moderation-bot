@@ -17,9 +17,9 @@ function Respondable<TBase extends Builders>(Base: TBase) {
 // add responses to the given class
 function Responsive<TBase extends Builders>(Base: TBase) {
   abstract class Responsive extends Respondable(Base) {
-    public readonly response?: (interaction: Interaction, client: Client, command: this) => void | Promise<void>;
+    public readonly response?: (interaction: Interaction, client: Client, command: Readonly<this>) => void | Promise<void>;
 
-    setResponse(response: (interaction: Interaction, client: Client, command: this) => void | Promise<void>) {
+    setResponse(response: (interaction: Interaction, client: Client, command: Readonly<this>) => void | Promise<void>) {
       Reflect.set(this, 'response', response);
       return this;
     }
@@ -30,7 +30,7 @@ function Responsive<TBase extends Builders>(Base: TBase) {
 export class ResponsiveSlashCommandSubcommandBuilder
   extends Responsive(SlashCommandSubcommandBuilder) {
   public async respond(interaction: Interaction, client: Client) {
-    return await this.response?.(interaction, client, this);
+    return await this.response?.(interaction, client, Object.freeze(this));
   }
 }
 
@@ -51,7 +51,7 @@ export class ResponsiveSlashCommandBuilder
   public async respond(interaction: Interaction, client: Client) {
     if (interaction.isCommand()) {
       // if there are no subcommands, call the response of the command and return
-      if (!interaction.options.getSubcommand(false)) return await this.response?.(interaction, client, this);
+      if (!interaction.options.getSubcommand(false)) return await this.response?.(interaction, client, Object.freeze(this));
 
       // find the subcommand's group or the subcommand itself if not found
       const OPTION = this.options.find(o => o.toJSON().name === (

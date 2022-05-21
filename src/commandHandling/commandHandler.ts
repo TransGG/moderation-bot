@@ -13,7 +13,7 @@ async function getCommands(input: SlashCommandBuilders) {
   return typeof input === 'function' ? await input() : await input;
 }
 
-async function commandHandler(client: Client, commandsOrCommandsGetter: SlashCommandBuilders) {
+export default async function commandHandler(client: Client, commandsOrCommandsGetter: SlashCommandBuilders) {
   // get commands
   let commands = await getCommands(commandsOrCommandsGetter);
 
@@ -43,5 +43,3 @@ async function commandHandler(client: Client, commandsOrCommandsGetter: SlashCom
     console.log(chalk.cyanBright('Reloaded commands'));
   };
 }
-
-export default commandHandler;
