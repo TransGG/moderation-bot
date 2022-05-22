@@ -1,4 +1,4 @@
-import UserLog from './collections/userLogs.js';
+import UserLog from './collections/collections.userLogs.js';
 
 const COLLECTIONS = {
   UserLog

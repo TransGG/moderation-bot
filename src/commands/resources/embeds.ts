@@ -1,4 +1,4 @@
-import moderationLogs from "./embeds/moderationLogs.js";
+import moderationLogs from "./embeds/embeds.moderationLogs.js";
 
 const EMBEDS = {
   moderationLogs
