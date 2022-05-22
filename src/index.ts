@@ -1,44 +1,19 @@
 // import stuff
-import fs from 'node:fs'
-import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import chokidar from 'chokidar';
-import { getConfig } from './utils.js';
-
 import chalk from "chalk";
 import { Client } from "discord.js";
 import commandHandler from './commandHandling/commandHandler.js';
-import { SlashCommandBuilder } from '@discordjs/builders';
-
+import { getCommands, getConfig, hotReload } from './utils.js';
 const CONFIG = await getConfig();
+
 // define client
 let client = new Client({ intents: [] })
   .once('ready', () => console.log(chalk.greenBright('Logged in')));
 
 // handle slash commands
-const COMMANDS_DIRECTORY = path.join(dirname(fileURLToPath(import.meta.url)), 'commands');
-async function loadCommands() {
-  // await for all promises in the Array<Promise<ResponsiveSlashCommandBuilder>> to be resolved
-  return (await Promise.all(
-    // get all files in the commands directory
-    fs.readdirSync(COMMANDS_DIRECTORY)
-      // filter out non-js files
-      .filter(file => file.endsWith('.js'))
-      // add ?v=<timestamp> to the end of the file path for hot reloading
-      // map() will return Array<Promise<ResponsiveSlashCommandBuilder>>
-      .map(async file => (await import(`./commands/${file}?v=${Date.now()}`)).default)
-    // return only SlashCommandBuilders
-  )).filter(module => module instanceof SlashCommandBuilder);
-}
-
-const RELOAD = await commandHandler(client, loadCommands);
+const RELOAD = await commandHandler(client, getCommands);
 if (CONFIG.Hot_Reload_Commands) {
   console.warn(chalk.yellowBright('Hot reloading commands is enabled'));
-  // reload on file changes in the commands directory
-  chokidar.watch(COMMANDS_DIRECTORY).on('change', async path => {
-    if (!path.endsWith('.js')) return;
-    await RELOAD();
-  });
+  hotReload(RELOAD)
 }
 
 // login
