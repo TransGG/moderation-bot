@@ -5,5 +5,6 @@ export default async function hGetSnowflakeMap(require: NodeRequire, path: strin
     Discord_Guilds: string[];
     Staff_Roles: string[];
     Report_Banned_Roles: string[];
+    Reports_Channels: string[];
   };
 }

@@ -1,11 +1,11 @@
-import pick from 'object.pick';
+import _ from 'lodash';
 import type { Message, Snowflake, User } from 'discord.js';
 import DATABASE from '../database.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
 
 function getUserState(user: User) {
-  return pick(user,
+  return _.pick(user,
     [
       'accentColor',
       'avatar',
@@ -17,7 +17,7 @@ function getUserState(user: User) {
 }
 
 function getMessageInfo(message: Message) {
-  return pick(message,
+  return _.pick(message,
     [
       'activity',
       'applicationId',

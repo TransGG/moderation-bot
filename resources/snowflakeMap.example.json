@@ -12,5 +12,9 @@
   "Report_Banned_Roles": [
     "Roles that are banned from reporting",
     "Role 2"
+  ],
+  "Reports_Channels": [
+    "Channels that user reports will be sent to",
+    "Channel 2"
   ]
 }
