@@ -1,4 +1,4 @@
-import UserLog from './collections/collections.userLogs.js';
+import UserLog, { ModerationLog } from './collections/collections.userLogs.js';
 
 const COLLECTIONS = {
   UserLog
@@ -7,3 +7,4 @@ const COLLECTIONS = {
 // TODO: insert chokidar hot reload shenanigans here
 
 export default COLLECTIONS;
+export const STRUCTURES = { ModerationLog }

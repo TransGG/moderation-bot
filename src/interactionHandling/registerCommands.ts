@@ -1,10 +1,13 @@
 import chalk from 'chalk';
-import type { SlashCommandBuilder } from '@discordjs/builders';
+import type { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { getConfig } from '../utils.js';
 
-export default async function registerSlashCommands(clientID: string | undefined, commands: SlashCommandBuilder[]) {
+export default async function registerCommands(
+  clientID: string | undefined,
+  commands: (SlashCommandBuilder | ContextMenuCommandBuilder)[]
+) {
   if (clientID === undefined) return; // this shouldn't happen.. i think
 
   const CONFIG = await getConfig();

@@ -1,6 +1,6 @@
-import { MessageEmbed, User } from "discord.js";
-import COLLECTIONS from "../../../database/collections.js";
-import { getCustomisations } from "../../../utils.js";
+import { MessageEmbed, User } from 'discord.js';
+import COLLECTIONS from '../../../database/collections.js';
+import { getCustomisations } from '../../../utils.js';
 
 export default async function moderationLogs(user: User, page: number = 1) {
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;

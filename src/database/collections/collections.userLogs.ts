@@ -1,28 +1,88 @@
-import type { Snowflake, User } from "discord.js";
-import DATABASE from "../database.js";
+import pick from 'object.pick';
+import type { Message, Snowflake, User } from 'discord.js';
+import DATABASE from '../database.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
+type UserState = Pick<User,
+  'accentColor' |
+  'avatar' |
+  'banner' |
+  'discriminator' |
+  'flags' |
+  'username'
+>
 
-class ModerationLog {
+type MessageInfo = Pick<Message,
+  'activity' |
+  'applicationId' |
+  'attachments' |
+  'channelId' |
+  'components' |
+  'content' |
+  'createdTimestamp' |
+  'editedTimestamp' |
+  'embeds' |
+  'flags' |
+  'guildId' |
+  'id' |
+  'interaction' |
+  'stickers' |
+  'tts'
+>
+
+export class ModerationLog {
   timestamp: EpochTimeStamp = Date.now();
-  userState?: User;
+  userState?: UserState;
+  message?: MessageInfo;
 
   moderator: Snowflake;
   reason: string;
 
-  rule?: string;
+  timeoutDuration?: number;
+  rule?: number[];
   privateNotes?: string;
-  action?: string;
+  action: string;
 
-  constructor(moderator: Snowflake, reason: string, rule?: string, privateNotes?: string, action?: string, userState?: User) {
+  constructor(moderator: Snowflake, action: string, reason: string, rule?: number[], privateNotes?: string, timeoutDuration?: number, userState?: User, message?: Message) {
     this.moderator = moderator;
     this.reason = reason;
+    this.action = action;
 
     if (rule) this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;
-    if (action) this.action = action;
+    if (action === 'timeout' && timeoutDuration) this.timeoutDuration = timeoutDuration;
 
-    if (userState) this.userState = userState;
+    if (userState) {
+      this.userState = pick(userState,
+        [
+          'accentColor',
+          'avatar',
+          'banner',
+          'discriminator',
+          'flags',
+          'username'
+        ]);
+    };
+    if (message) {
+      this.message = pick(message,
+        [
+          'activity',
+          'applicationId',
+          'attachments',
+          'channelId',
+          'components',
+          'content',
+          'createdTimestamp',
+          'editedTimestamp',
+          'embeds',
+          'flags',
+          'guildId',
+          'id',
+          'interaction',
+          'stickers',
+          'tts'
+        ])
+    };
   }
 }
 
@@ -34,23 +94,38 @@ export default class UserLog {
     this.userID = userID;
   }
 
-  static async moderateUser(user: User, moderatorID: Snowflake, reason: string, rule?: string, privateNotes?: string, action?: string) {
+  static async newLog(
+    moderatorID: Snowflake,
+    user: User,
+    action: string,
+    reason: string,
+    rule?: number[],
+    privateNotes?: string,
+    timeoutDuration?: number,
+    message?: Message
+  ) {
     const DOCUMENT = await DATABASE_COLLECTION.findOne({ userID: user.id });
-    const LOG = DOCUMENT ?
+    const USER_LOG = DOCUMENT ?
       Object.setPrototypeOf(DOCUMENT, UserLog.prototype) as UserLog :
       new UserLog(user.id);
 
-    LOG.moderationLogs.push(new ModerationLog(
+    const MODERATION_LOG = new ModerationLog(
       moderatorID,
+      action,
       reason,
       rule,
       privateNotes,
-      action,
-      user
-    ));
-    
-    if (!DOCUMENT) return await DATABASE_COLLECTION.insertOne(LOG);
-    else return await DATABASE_COLLECTION.updateOne({ _id: DOCUMENT._id }, { $set: LOG });
+      timeoutDuration,
+      user,
+      message
+    )
+
+    USER_LOG.moderationLogs.push(MODERATION_LOG);
+
+    if (!DOCUMENT) await DATABASE_COLLECTION.insertOne(USER_LOG);
+    else await DATABASE_COLLECTION.updateOne({ _id: DOCUMENT._id }, { $set: USER_LOG });
+
+    return MODERATION_LOG;
   }
 
   static async getUserLog(userID: Snowflake) {

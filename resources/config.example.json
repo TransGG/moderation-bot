@@ -9,7 +9,8 @@
   ],
   "MongoDB_URI":"mongodb://IP:PORT",
   "Hot_Reload_Commands": false,
-  "Moderator_Role_IDs": [
+  "Staff_Role_IDs": [
+    "Prevents staff from taking action on other staff members",
     "Role 1"
   ]
 }

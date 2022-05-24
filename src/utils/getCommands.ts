@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
 
 export default async function hGetCommands(directory: string) {
   // await for all promises in the Array<Promise<ResponsiveSlashCommandBuilder>> to be resolved
@@ -12,5 +12,5 @@ export default async function hGetCommands(directory: string) {
       // map() will return Array<Promise<ResponsiveSlashCommandBuilder>>
       .map(async file => (await import(`${directory}/${file}?v=${Date.now()}`)).default)
     // return only SlashCommandBuilders
-  )).filter(module => module instanceof SlashCommandBuilder);
+  )).filter(module => module instanceof SlashCommandBuilder || module instanceof ContextMenuCommandBuilder);
 }

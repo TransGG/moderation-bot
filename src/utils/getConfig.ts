@@ -9,6 +9,6 @@ export default async function hGetConfig(require: NodeRequire) {
     MongoDB_URI: string;
     Hot_Reload_Commands: boolean;
 
-    Moderator_Role_IDs: string[];
+    Staff_Role_IDs: string[];
   };
 }

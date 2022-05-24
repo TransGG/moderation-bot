@@ -1,6 +1,6 @@
-import { SlashCommandUserOption } from "@discordjs/builders";
-import { ResponsiveSlashCommandSubcommandBuilder } from "../../../commandHandling/commandBuilders.js";
-import EMBEDS from "../../resources/embeds.js";
+import { SlashCommandUserOption } from '@discordjs/builders';
+import { ResponsiveSlashCommandSubcommandBuilder } from '../../../interactionHandling/commandBuilders.js';
+import EMBEDS from '../../resources/embeds.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('logs')
@@ -10,13 +10,13 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     .setDescription('The user to view logs for')
     .setRequired(true)
   )
-  .setResponse(async (interaction, _client, _command) => {
+  .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isCommand()) return;
-
+    console.log('yup')
     interaction.reply({
       embeds: [await EMBEDS.moderationLogs(interaction.options.getUser('user', true))],
       components: [
-
+        // TODO: Buttons
       ],
       ephemeral: true
     });

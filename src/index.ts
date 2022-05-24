@@ -1,20 +1,23 @@
 // import stuff
-import chalk from "chalk";
-import { Client } from "discord.js";
-import commandHandler from './commandHandling/commandHandler.js';
-import { getCommands, getConfig, hotReload } from './utils.js';
+import chalk from 'chalk';
+import { Client, Intents } from 'discord.js';
+import InteractionHandler from './interactionHandling/interactionHandler.js';
+import { getCommands, getConfig, watchAndReloadCommands } from './utils.js';
 const CONFIG = await getConfig();
 
 // define client
-let client = new Client({ intents: [] })
-  .once('ready', () => console.log(chalk.greenBright('Logged in')));
+let client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_MESSAGES
+  ]
+}).once('ready', () => console.log(chalk.greenBright('Logged in'))) as
+  Client & { readonly interactionHandler: InteractionHandler };
 
-// handle slash commands
-const RELOAD = await commandHandler(client, getCommands);
-if (CONFIG.Hot_Reload_Commands) {
-  console.warn(chalk.yellowBright('Hot reloading commands is enabled'));
-  hotReload(RELOAD)
-}
+// command handling
+Reflect.set(client, 'interactionHandler', new InteractionHandler(client, await getCommands()));
+if (CONFIG.Hot_Reload_Commands) watchAndReloadCommands(client.interactionHandler);
 
 // login
 console.log(chalk.cyanBright('Logging in'));
