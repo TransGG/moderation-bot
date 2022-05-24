@@ -4,7 +4,7 @@ import moderationNotice from './embeds/embeds.moderationNotice.js';
 const EMBEDS = {
   moderationLogs,
   moderationNotice
-}
+};
 
 // TODO: insert chokidar hot reload shenanigans here
 

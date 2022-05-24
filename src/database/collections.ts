@@ -7,4 +7,4 @@ const COLLECTIONS = {
 // TODO: insert chokidar hot reload shenanigans here
 
 export default COLLECTIONS;
-export const STRUCTURES = { ModerationLog }
+export const STRUCTURES = { ModerationLog };

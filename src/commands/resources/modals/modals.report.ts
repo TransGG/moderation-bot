@@ -16,5 +16,7 @@ export default new ResponsiveModal()
   )
   .setResponse((interaction, interactionHandler, command) => {
     if (!interaction.isModalSubmit()) return;
+    // TODO: add to database
+    // TODO; send report to staff channels
     interaction.reply({ content: 'Not Implemented', ephemeral: true });
   });

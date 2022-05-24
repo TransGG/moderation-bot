@@ -2,15 +2,7 @@
   "NOTE": "RENAME THIS FILE TO `config.json`",
   
   "Discord_Bot_Token": "Your discord bot token here",
-  "Global_Commands": true,
-  "Discord_Guild_IDs": [
-    "Not required if using global commands",
-    "Guild 2"
-  ],
   "MongoDB_URI":"mongodb://IP:PORT",
-  "Hot_Reload_Commands": false,
-  "Staff_Role_IDs": [
-    "Prevents staff from taking action on other staff members",
-    "Role 1"
-  ]
+  "Global_Commands": true,
+  "Hot_Reload_Commands": false
 }

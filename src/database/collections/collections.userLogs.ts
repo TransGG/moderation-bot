@@ -3,37 +3,44 @@ import type { Message, Snowflake, User } from 'discord.js';
 import DATABASE from '../database.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
-type UserState = Pick<User,
-  'accentColor' |
-  'avatar' |
-  'banner' |
-  'discriminator' |
-  'flags' |
-  'username'
->
 
-type MessageInfo = Pick<Message,
-  'activity' |
-  'applicationId' |
-  'attachments' |
-  'channelId' |
-  'components' |
-  'content' |
-  'createdTimestamp' |
-  'editedTimestamp' |
-  'embeds' |
-  'flags' |
-  'guildId' |
-  'id' |
-  'interaction' |
-  'stickers' |
-  'tts'
->
+function getUserState(user: User) {
+  return pick(user,
+    [
+      'accentColor',
+      'avatar',
+      'banner',
+      'discriminator',
+      'flags',
+      'username'
+    ]);
+}
+
+function getMessageInfo(message: Message) {
+  return pick(message,
+    [
+      'activity',
+      'applicationId',
+      'attachments',
+      'channelId',
+      'components',
+      'content',
+      'createdTimestamp',
+      'editedTimestamp',
+      'embeds',
+      'flags',
+      'guildId',
+      'id',
+      'interaction',
+      'stickers',
+      'tts'
+    ]);
+}
 
 export class ModerationLog {
   timestamp: EpochTimeStamp = Date.now();
-  userState?: UserState;
-  message?: MessageInfo;
+  userState?: ReturnType<typeof getUserState>;
+  messageInfo?: ReturnType<typeof getMessageInfo>;
 
   moderator: Snowflake;
   reason: string;
@@ -43,7 +50,16 @@ export class ModerationLog {
   privateNotes?: string;
   action: string;
 
-  constructor(moderator: Snowflake, action: string, reason: string, rule?: number[], privateNotes?: string, timeoutDuration?: number, userState?: User, message?: Message) {
+  constructor(
+    moderator: Snowflake,
+    action: string,
+    reason: string,
+    rule?: number[],
+    privateNotes?: string,
+    timeoutDuration?: number,
+    user?: User,
+    message?: Message
+  ) {
     this.moderator = moderator;
     this.reason = reason;
     this.action = action;
@@ -52,37 +68,8 @@ export class ModerationLog {
     if (privateNotes) this.privateNotes = privateNotes;
     if (action === 'timeout' && timeoutDuration) this.timeoutDuration = timeoutDuration;
 
-    if (userState) {
-      this.userState = pick(userState,
-        [
-          'accentColor',
-          'avatar',
-          'banner',
-          'discriminator',
-          'flags',
-          'username'
-        ]);
-    };
-    if (message) {
-      this.message = pick(message,
-        [
-          'activity',
-          'applicationId',
-          'attachments',
-          'channelId',
-          'components',
-          'content',
-          'createdTimestamp',
-          'editedTimestamp',
-          'embeds',
-          'flags',
-          'guildId',
-          'id',
-          'interaction',
-          'stickers',
-          'tts'
-        ])
-    };
+    if (user) this.userState = getUserState(user);
+    if (message) this.messageInfo = getMessageInfo(message)
   }
 }
 
@@ -118,7 +105,7 @@ export default class UserLog {
       timeoutDuration,
       user,
       message
-    )
+    );
 
     USER_LOG.moderationLogs.push(MODERATION_LOG);
 

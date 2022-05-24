@@ -1,14 +1,10 @@
-const CONFIG_PATH = '../resources/config.json';
-export default async function hGetConfig(require: NodeRequire) {
+export default async function hGetConfig(require: NodeRequire, path: string) {
   // import config.json
-  delete require.cache[require.resolve(CONFIG_PATH)];
-  return require(CONFIG_PATH) as {
+  delete require.cache[require.resolve(path)];
+  return require(path) as {
     Discord_Bot_Token: string;
-    Global_Commands: boolean;
-    Discord_Guild_IDs: string[];
     MongoDB_URI: string;
+    Global_Commands: boolean;
     Hot_Reload_Commands: boolean;
-
-    Staff_Role_IDs: string[];
   };
 }

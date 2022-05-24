@@ -12,7 +12,6 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
   )
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isCommand()) return;
-    console.log('yup')
     interaction.reply({
       embeds: [await EMBEDS.moderationLogs(interaction.options.getUser('user', true))],
       components: [

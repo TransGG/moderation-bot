@@ -13,7 +13,7 @@ export default async function moderationNotice(log: ModerationLog) {
       case 'ban': return 'banned';
       default: return 'warned'
     }
-  })()
+  })();
 
   const EMBED = new MessageEmbed()
     .setColor('YELLOW')
@@ -27,15 +27,15 @@ export default async function moderationNotice(log: ModerationLog) {
     true
   );
 
-  if (log.message?.content) EMBED.addField(
+  if (log.messageInfo?.content) EMBED.addField(
     'Infracting Message Content',
-    log.message.content,
+    log.messageInfo.content,
     false
-  )
+  );
 
-  if (log.message?.attachments) EMBED.addField(
+  if (log.messageInfo?.attachments) EMBED.addField(
     'Infracting Message Attachments',
-    log.message.attachments.map(a => a.url).join('\n'),
+    log.messageInfo.attachments.map(a => a.url).join('\n'),
     false
   );
 
