@@ -6,6 +6,7 @@ import type InteractionHandler from './interactionHandling/interactionHandler.js
 import hGetCommands from './utils/getCommands.js';
 import hGetConfig from './utils/getConfig.js'
 import hGetCustomisations from './utils/getCustomisations.js';
+import hGetModulesInFolder from './utils/getModulesInFolder.js';
 import hGetRules from './utils/getRules.js';
 import hGetSnowflakeMap from './utils/getSnowflakeMap.js';
 import hWatchAndReloadCommands from './utils/watchAndReloadCommands.js';
@@ -18,6 +19,8 @@ const COMMANDS_DIRECTORY = path.join(dirname(fileURLToPath(import.meta.url)), 'c
 export async function getCommands() { return await hGetCommands(COMMANDS_DIRECTORY); }
 export async function getConfig() { return await hGetConfig(REQUIRE, CONFIG_PATH); }
 export async function getCustomisations() { return await hGetCustomisations(REQUIRE); }
+export function getDirectoryFromFileURL(fileURL: string) { return dirname(fileURLToPath(fileURL)); }
+export async function getModulesInFolder(directory: string) { return await hGetModulesInFolder(directory); }
 export async function getRules() { return await hGetRules(REQUIRE); }
 export async function getSnowflakeMap() { return await hGetSnowflakeMap(REQUIRE, SNOWFLAKE_MAP_PATH); }
 export function watchAndReloadCommands(interactionHandler: InteractionHandler) {

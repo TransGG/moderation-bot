@@ -8,7 +8,7 @@ export default async function actionCommand(builder: SlashCommandBuilder | Slash
       .setName('action')
       .setDescription('The action to take')
       .addChoices(
-        // TODO: handle this better?
+        // TODO: more centralised actions definition?
         { name: 'Warn', value: 'warn' },
         { name: 'Timeout', value: 'timeout' },
         { name: 'Kick', value: 'kick' },

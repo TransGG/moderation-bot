@@ -15,10 +15,8 @@ export default async function moderationLogs(user: User, page: number = 1) {
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
     .setDescription(`> <@${user.id}>`)
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
-    .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log =>
-    ({
+    .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => ({
       name: `${log.rule ? `${log.rule}   ·  ` : ''}<t:${Math.floor(log.timestamp / 1000)}:R>`,
       value: log.reason
-    })
-    ));
+    })));
 }
