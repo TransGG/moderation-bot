@@ -1,7 +1,9 @@
 // imports
 import chalk from 'chalk';
-import type { Client, Interaction, MessageButton, MessageSelectMenu, Modal } from 'discord.js';
+import type { Client, ClientUser, Interaction, MessageButton, MessageSelectMenu, Modal } from 'discord.js';
 import type { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v10';
 import {
   ResponsiveContentMenuCommandBuilder,
   ResponsiveSlashCommandBuilder,
@@ -13,7 +15,6 @@ import {
   ResponsiveMessageSelectMenu,
   ResponsiveModal
 } from './componentBuilders.js';
-import registerCommands from './registerCommands.js';
 
 type Command =
   SlashCommandBuilder |
@@ -26,19 +27,28 @@ type Componenent =
 
 export default class InteractionHandler {
   public readonly client: Client;
+  public readonly restClient?: REST;
 
   public readonly commands: Command[];
-  public readonly components: Componenent[] = [];
+  public readonly components: Componenent[] = []
 
-  constructor(client: Client, commands: Command[]) {
+  public globalCommands: boolean = true;
+  public guilds: string[] | undefined;
+
+  constructor(client: Client, commands: Command[], globalCommands: boolean = true, guilds?: string[]) {
+    this.globalCommands = globalCommands;
+    this.guilds = guilds;
     this.commands = commands;
     this.client = client
-      .once('ready', async () => {
+      .once('ready', async client => {
         // register slash commands after login
-        await registerCommands(client.user?.id, commands);
-        console.log(chalk.greenBright('Ready'));
+        Reflect.set(this, 'restClient', new REST({ version: '10' }).setToken(client.token));
+        console.info(chalk.cyanBright('Registering slash commands'));
+        await this.registerCommands();
+        console.info(chalk.greenBright('Registered slash commands'));
+        console.info(chalk.greenBright('Ready'));
       })
-      .on('interactionCreate', i => this.respond(i))
+      .on('interactionCreate', async i => await this.respond(i))
   }
 
   async respond(interaction: Interaction) {
@@ -67,14 +77,35 @@ export default class InteractionHandler {
       i.toJSON().type === componenet.toJSON().type &&
       i.customId == componenet.customId);
     if (EXISTING) this.components.splice(this.components.indexOf(EXISTING), 1)
-  
+
     this.components.push(componenet);
   }
 
   async setCommands(commands: Command[]) {
-    if (JSON.stringify(commands) !== JSON.stringify(this.commands))
-      await registerCommands(this.client.user?.id, commands);
+    if (JSON.stringify(commands) !== JSON.stringify(this.commands)) {
+      console.info(chalk.cyanBright('Reregistering commands'));
+      await this.registerCommands();
+    }
     Reflect.set(this, 'commands', commands);
-    console.log(chalk.cyanBright('Reloaded commands'));
+    console.info(chalk.cyanBright('Reloaded commands'));
+  }
+
+  async registerCommands() {
+    if (
+      !this.client.isReady() ||
+      !this.restClient
+    ) throw new Error('Client is not ready');
+
+    return await Promise.all([
+      this.restClient.put(
+        Routes.applicationCommands(this.client.user.id),
+        { body: this.globalCommands ? this.commands : [] }
+      ),
+      ...(this.guilds ?? this.client.guilds.cache.map(g => g.id))
+        .map(gid => (<REST>this.restClient).put(
+          Routes.applicationGuildCommands((<ClientUser>this.client.user).id, gid),
+          { body: this.globalCommands ? [] : this.commands }
+        )),
+    ]);
   }
 }

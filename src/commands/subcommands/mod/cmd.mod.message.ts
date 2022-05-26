@@ -54,7 +54,7 @@ export default await TEMPLATES.actionCommand(new ResponsiveSlashCommandSubcomman
     try {
       await (await message.author.createDM()).send({
         embeds: [await EMBEDS.moderationNotice(
-          await COLLECTIONS.UserLog.newLog(
+          await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,
             message.author,
             ACTION,

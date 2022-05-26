@@ -2,8 +2,10 @@
 import chalk from 'chalk';
 import { Client, Intents } from 'discord.js';
 import InteractionHandler from './interactionHandling/interactionHandler.js';
-import { getCommands, getConfig, watchAndReloadCommands } from './utils.js';
+import { getCommands, getConfig, getSnowflakeMap, watchAndReloadCommands } from './utils.js';
+
 const CONFIG = await getConfig();
+const SNOWFLAKE_MAP = await getSnowflakeMap();
 
 // define client
 let client = new Client({
@@ -16,8 +18,16 @@ let client = new Client({
   Client & { readonly interactionHandler: InteractionHandler };
 
 // command handling
-Reflect.set(client, 'interactionHandler', new InteractionHandler(client, await getCommands()));
-if (CONFIG.Hot_Reload_Commands) watchAndReloadCommands(client.interactionHandler);
+Reflect.set(client, 'interactionHandler', new InteractionHandler(
+  client,
+  await getCommands(),
+  CONFIG.Global_Commands,
+  SNOWFLAKE_MAP.Discord_Guilds ?? undefined
+));
+if (CONFIG.Hot_Reload_Commands) {
+  console.warn(chalk.yellowBright('Hot Reload Commands is enabled'));
+  watchAndReloadCommands(client.interactionHandler);
+}
 
 // login
 console.log(chalk.cyanBright('Logging in'));

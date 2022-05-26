@@ -1,87 +1,38 @@
 import _ from 'lodash';
 import type { Message, Snowflake, User } from 'discord.js';
+import type { ObjectId } from 'mongodb';
+import type ModerationLogT from './subcollections/userLogs/collections.userLogs.moderationLogs.js';
+import type ReportLogT from './subcollections/userLogs/collections.userLogs.reportLogs.js';
 import DATABASE from '../database.js';
+import { t } from '../../utils.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
+export const ModerationLog =
+  (await import(t('./subcollections/userLogs/collections.userLogs.moderationLogs.js')))
+    .default as typeof ModerationLogT;
 
-function getUserState(user: User) {
-  return _.pick(user,
-    [
-      'accentColor',
-      'avatar',
-      'banner',
-      'discriminator',
-      'flags',
-      'username'
-    ]);
-}
-
-function getMessageInfo(message: Message) {
-  return _.pick(message,
-    [
-      'activity',
-      'applicationId',
-      'attachments',
-      'channelId',
-      'components',
-      'content',
-      'createdTimestamp',
-      'editedTimestamp',
-      'embeds',
-      'flags',
-      'guildId',
-      'id',
-      'interaction',
-      'stickers',
-      'tts'
-    ]);
-}
-
-export class ModerationLog {
-  timestamp: EpochTimeStamp = Date.now();
-  userState?: ReturnType<typeof getUserState>;
-  messageInfo?: ReturnType<typeof getMessageInfo>;
-
-  moderator: Snowflake;
-  reason: string;
-
-  timeoutDuration?: number;
-  rule?: number[];
-  privateNotes?: string;
-  action: string;
-
-  constructor(
-    moderator: Snowflake,
-    action: string,
-    reason: string,
-    rule?: number[],
-    privateNotes?: string,
-    timeoutDuration?: number,
-    user?: User,
-    message?: Message
-  ) {
-    this.moderator = moderator;
-    this.reason = reason;
-    this.action = action;
-
-    if (rule) this.rule = rule;
-    if (privateNotes) this.privateNotes = privateNotes;
-    if (action === 'timeout' && timeoutDuration) this.timeoutDuration = timeoutDuration;
-
-    if (user) this.userState = getUserState(user);
-    if (message) this.messageInfo = getMessageInfo(message)
-  }
-}
+export const ReportLog =
+  (await import(t('./subcollections/userLogs/collections.userLogs.reportLogs.js')))
+    .default as typeof ReportLogT;
 
 export default class UserLog {
+  public readonly _id?: ObjectId;
   public readonly userID: Snowflake;
-  public readonly moderationLogs: ModerationLog[] = [];
+  public readonly moderationLogs: ModerationLogT[] = [];
+  public readonly reportLogs: ReportLogT[] = [];
 
   constructor(userID: Snowflake) {
     this.userID = userID;
   }
 
-  static async newLog(
+  static async getUserLog(userID: Snowflake) {
+    const DOCUMENT = await DATABASE_COLLECTION.findOne({ userID });
+    return DOCUMENT ?
+      Object.setPrototypeOf(DOCUMENT, UserLog.prototype) as UserLog :
+      new UserLog(userID);
+  }
+
+  static async newModLog(
     moderatorID: Snowflake,
     user: User,
     action: string,
@@ -91,34 +42,37 @@ export default class UserLog {
     timeoutDuration?: number,
     message?: Message
   ) {
-    const DOCUMENT = await DATABASE_COLLECTION.findOne({ userID: user.id });
-    const USER_LOG = DOCUMENT ?
-      Object.setPrototypeOf(DOCUMENT, UserLog.prototype) as UserLog :
-      new UserLog(user.id);
-
     const MODERATION_LOG = new ModerationLog(
       moderatorID,
+      user,
       action,
       reason,
       rule,
       privateNotes,
       timeoutDuration,
-      user,
       message
     );
-
+    const USER_LOG = await UserLog.getUserLog(user.id);
     USER_LOG.moderationLogs.push(MODERATION_LOG);
-
-    if (!DOCUMENT) await DATABASE_COLLECTION.insertOne(USER_LOG);
-    else await DATABASE_COLLECTION.updateOne({ _id: DOCUMENT._id }, { $set: USER_LOG });
-
+    await USER_LOG.update();
     return MODERATION_LOG;
   }
 
-  static async getUserLog(userID: Snowflake) {
-    const DOCUMENT = await DATABASE_COLLECTION.findOne({ userID });
-    return DOCUMENT ?
-      Object.setPrototypeOf(DOCUMENT, UserLog.prototype) as UserLog :
-      new UserLog(userID);
+  static async newReportLog(
+    reason: string,
+    reporter: User,
+    reportedUser: User,
+    message: Message
+  ) {
+    const REPORT_LOG = new ReportLog(reason, reporter, reportedUser, message);
+    const USER_LOG = await UserLog.getUserLog(reportedUser.id);
+    USER_LOG.reportLogs.push(REPORT_LOG);
+    await USER_LOG.update();
+    return REPORT_LOG;
+  }
+
+  private async update() {
+    if (!this._id) return await DATABASE_COLLECTION.insertOne(this);
+    else return await DATABASE_COLLECTION.updateOne({ _id: this._id }, { $set: this });
   }
 }

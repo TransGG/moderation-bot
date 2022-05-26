@@ -9,7 +9,7 @@ export default new ResponsiveContentMenuCommandBuilder()
   .setResponse((interaction, interactionHandler, _command) => {
     if (!interaction.isMessageContextMenu()) return;
     interactionHandler.addComponent(MODALS.report);
-
+    
     // TODO: disallow people with report-banned roles to report
 
     const MODAL = _.cloneDeep(MODALS.report);

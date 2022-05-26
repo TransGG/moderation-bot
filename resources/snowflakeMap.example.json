@@ -3,7 +3,8 @@
   
   "Discord_Guilds": [
     "Not required if using global commands",
-    "Guild 2"
+    "Set as `null` for all guilds",
+    "Guild 3"
   ],
   "Staff_Roles": [
     "Prevents staff from taking action on other staff members",

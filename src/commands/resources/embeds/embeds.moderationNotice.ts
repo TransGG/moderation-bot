@@ -1,8 +1,8 @@
 import { MessageEmbed } from 'discord.js';
-import type { ModerationLog } from '../../../database/collections/collections.userLogs.js';
+import type COLLECTIONS from '../../../database/collections.js';
 import { getRules } from '../../../utils.js';
 
-export default async function moderationNotice(log: ModerationLog) {
+export default async function moderationNotice(log: InstanceType<typeof COLLECTIONS.ModerationLog>) {
   // TODO: handle this better?
   const ACTION = (() => {
     switch (log.action) {
