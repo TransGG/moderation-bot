@@ -21,18 +21,18 @@ export default class UserLog {
   public readonly moderationLogs: ModerationLogT[] = [];
   public readonly reportLogs: ReportLogT[] = [];
 
-  constructor(userID: Snowflake) {
+  public constructor(userID: Snowflake) {
     this.userID = userID;
   }
 
-  static async getUserLog(userID: Snowflake) {
+  public static async getUserLog(userID: Snowflake) {
     const DOCUMENT = await DATABASE_COLLECTION.findOne({ userID });
     return DOCUMENT ?
       Object.setPrototypeOf(DOCUMENT, UserLog.prototype) as UserLog :
       new UserLog(userID);
   }
 
-  static async newModLog(
+  public static async newModLog(
     moderatorID: Snowflake,
     user: User,
     action: string,
@@ -58,7 +58,7 @@ export default class UserLog {
     return MODERATION_LOG;
   }
 
-  static async newReportLog(
+  public static async newReportLog(
     reason: string,
     reporter: User,
     reportedUser: User,

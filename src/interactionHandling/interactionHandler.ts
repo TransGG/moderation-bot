@@ -35,7 +35,7 @@ export default class InteractionHandler {
   public globalCommands: boolean = true;
   public guilds: string[] | undefined;
 
-  constructor(client: Client, commands: Command[], globalCommands: boolean = true, guilds?: string[]) {
+  public constructor(client: Client, commands: Command[], globalCommands: boolean = true, guilds?: string[]) {
     this.globalCommands = globalCommands;
     this.guilds = guilds;
     this.commands = commands;
@@ -51,7 +51,7 @@ export default class InteractionHandler {
       .on('interactionCreate', async i => await this.respond(i))
   }
 
-  async respond(interaction: Interaction) {
+  public async respond(interaction: Interaction) {
     const COMMAND =
       interaction.isButton() || interaction.isSelectMenu() || interaction.isModalSubmit() ?
         this.components.find(i => i.customId === interaction.customId) :
@@ -72,7 +72,7 @@ export default class InteractionHandler {
     ) await COMMAND.respond(interaction, this);
   }
 
-  addComponent(componenet: Componenent) {
+  public addComponent(componenet: Componenent) {
     const EXISTING = this.components.find(i =>
       i.toJSON().type === componenet.toJSON().type &&
       i.customId == componenet.customId);
@@ -81,7 +81,7 @@ export default class InteractionHandler {
     this.components.push(componenet);
   }
 
-  async setCommands(commands: Command[]) {
+  public async setCommands(commands: Command[]) {
     if (JSON.stringify(commands) !== JSON.stringify(this.commands)) {
       console.info(chalk.cyanBright('Reregistering commands'));
       await this.registerCommands();
@@ -90,7 +90,7 @@ export default class InteractionHandler {
     console.info(chalk.cyanBright('Reloaded commands'));
   }
 
-  async registerCommands() {
+  public async registerCommands() {
     if (
       !this.client.isReady() ||
       !this.restClient

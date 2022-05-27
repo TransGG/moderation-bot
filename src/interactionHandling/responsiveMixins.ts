@@ -30,14 +30,18 @@ function Respondable<TBase extends Constructor>(Base: TBase) {
 
 function Responsive<TBase extends Constructor>(Base: TBase) {
   abstract class Responsive extends Base {
-    public readonly response?: (interaction: Interaction, interactionHandler: InteractionHandler, command: Readonly<this>) => void | Promise<void>;
+    public readonly response?: (
+      interaction: Interaction,
+      interactionHandler: InteractionHandler,
+      command: Readonly<this>
+    ) => any;
 
-    setResponse(response: (interaction: Interaction, interactionHandler: InteractionHandler, command: Readonly<this>) => void | Promise<void>) {
+    setResponse(response: typeof this.response) {
       Reflect.set(this, 'response', response);
       return this;
     }
 
-    public respond(interaction: Interaction, interactionHandler: InteractionHandler): void | Promise<void> {
+    public respond(interaction: Interaction, interactionHandler: InteractionHandler): any {
       return this.response?.(interaction, interactionHandler, Object.freeze(this));
     }
   }

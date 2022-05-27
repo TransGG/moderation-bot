@@ -35,19 +35,19 @@ function getMessageInfo(message: Message) {
 }
 
 export default class ModerationLog {
-  timestamp: EpochTimeStamp = Date.now();
-  userState: ReturnType<typeof getUserState>;
-  messageInfo?: ReturnType<typeof getMessageInfo>;
+  public readonly timestamp: EpochTimeStamp = Date.now();
+  public readonly userState: ReturnType<typeof getUserState>;
+  public readonly messageInfo?: ReturnType<typeof getMessageInfo>;
 
-  moderator: Snowflake;
-  reason: string;
+  public readonly moderator: Snowflake;
+  public readonly reason: string;
 
-  timeoutDuration?: number;
-  rule?: number[];
-  privateNotes?: string;
-  action: string;
+  public readonly timeoutDuration?: number;
+  public readonly rule?: number[];
+  public readonly privateNotes?: string;
+  public readonly action: string;
 
-  constructor(
+  public constructor(
     moderator: Snowflake,
     user: User,
     action: string,

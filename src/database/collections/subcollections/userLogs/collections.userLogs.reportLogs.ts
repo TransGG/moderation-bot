@@ -35,13 +35,13 @@ function getMessageInfo(message: Message) {
 }
 
 export default class ReportLog {
-  timestamp: EpochTimeStamp = Date.now();
-  reason: string;
-  reporter: ReturnType<typeof getUserState>;
-  reportedUser: ReturnType<typeof getUserState>;
-  messageInfo: ReturnType<typeof getMessageInfo>;
+  public readonly timestamp: EpochTimeStamp = Date.now();
+  public readonly reason: string;
+  public readonly reporter: ReturnType<typeof getUserState>;
+  public readonly reportedUser: ReturnType<typeof getUserState>;
+  public readonly messageInfo: ReturnType<typeof getMessageInfo>;
 
-  constructor(
+  public constructor(
     reason: string,
     reporter: User,
     reportedUser: User,
