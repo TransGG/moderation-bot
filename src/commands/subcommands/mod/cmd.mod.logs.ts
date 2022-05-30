@@ -12,7 +12,9 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
   )
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isCommand()) return;
-    interaction.reply({
+    await interaction.deferReply({ ephemeral: true });
+
+    return await interaction.followUp({
       embeds: [await EMBEDS.moderationLogs(interaction.options.getUser('user', true))],
       components: [
         // TODO: Buttons

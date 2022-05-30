@@ -22,7 +22,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     .addField('Reason', log.reason, true);
 
   if (log.rule) EMBED.addField(
-    `Rule ${log.rule?.join('.') ?? ''}`,
+    `Rule ${log.rule?.map(r => ++r).join('.') ?? ''}`,
     <string>(await getRules())[<number>log.rule[0]]?.description,
     true
   );
@@ -33,7 +33,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     false
   );
 
-  if (log.messageInfo?.attachments) EMBED.addField(
+  if (log.messageInfo?.attachments.size) EMBED.addField(
     'Infracting Message Attachments',
     log.messageInfo.attachments.map(a => a.url).join('\n'),
     false

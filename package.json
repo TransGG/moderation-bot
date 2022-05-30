@@ -1,7 +1,7 @@
 {
-  "name": "@transplace/lfg-bot",
+  "name": "@transplace/moderation-bot",
   "version": "1.0.0",
-  "description": "a discord bot for finding a game",
+  "description": "a moderation bot for transplace",
   "main": "dist/index",
   "type": "module",
   "scripts": {

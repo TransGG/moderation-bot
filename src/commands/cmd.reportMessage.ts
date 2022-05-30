@@ -20,6 +20,7 @@ export default new ResponsiveContentMenuCommandBuilder()
           !SNOWFLAKE_MAP.Report_Banned_Roles.some(r => (<string[]>interaction.member?.roles).includes(r)) :
           undefined;
 
+    // TODO: disallow reporting staff members
     if (!REPORT_ALLOWED) {
       await interaction.reply({
         content: REPORT_ALLOWED === false ?

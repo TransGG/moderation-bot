@@ -16,9 +16,9 @@ async function reportsCountSummary(userID: Snowflake) {
 
   const LINES: string[] = [];
   pushReportsCount(LINES, DAY, 0, 'the past 24 hours');
-  pushReportsCount(LINES, WEEK, DAY, 'the past week');
-  pushReportsCount(LINES, MONTH, WEEK, 'the past month');
-  pushReportsCount(LINES, YEAR, MONTH, 'the past year');
+  pushReportsCount(LINES, WEEK, DAY, 'the past 7 days');
+  pushReportsCount(LINES, MONTH, WEEK, 'the past 30 days');
+  pushReportsCount(LINES, YEAR, MONTH, 'the past 365 days');
   pushReportsCount(LINES, ALL, YEAR, 'total');
   return LINES.join('\n');
 }

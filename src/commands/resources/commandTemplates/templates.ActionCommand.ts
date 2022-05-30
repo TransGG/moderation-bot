@@ -8,6 +8,7 @@ import EMBEDS from '../embeds.js';
 import { getRules } from '../../../utils.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
+  const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;
   const ACTION = interaction.options.getString('action', true);
   const REASON = interaction.options.getString('reason', true);
   const PRIVATE_NOTES = interaction.options.getString('private-notes', false);
@@ -15,6 +16,7 @@ function getBasicOptions(interaction: CommandInteraction) {
     ?? 'null') as number[] | null ?? undefined;
 
   return {
+    DELETE_MESSAGE,
     ACTION,
     REASON,
     PRIVATE_NOTES,
@@ -138,6 +140,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
       // get basic options
       const {
+        DELETE_MESSAGE,
         ACTION,
         REASON,
         PRIVATE_NOTES,
@@ -169,14 +172,17 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
       }
 
+      // TODO: disallow taking action on other staff members
       if (!await ActionCommand.actions.find(action => action[0].value === ACTION)?.[1](
         member,
         REASON,
         DURATION
       )) return await interaction.followUp({
-        content: 'Could not take action on member',
+        content: 'You cannot take action on members with higher permission than this bot',
         ephemeral: true
       });
+
+      if (DELETE_MESSAGE && message?.deletable) message.delete();
 
       const LOG = await COLLECTIONS.UserLog.newModLog(
         interaction.user.id,
