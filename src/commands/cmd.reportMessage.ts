@@ -21,6 +21,8 @@ export default new ResponsiveContentMenuCommandBuilder()
           undefined;
 
     // TODO: disallow reporting staff members
+    // TODO: change reason button
+    // TODO: disallow same user reporting the same message twice
     if (!REPORT_ALLOWED) {
       await interaction.reply({
         content: REPORT_ALLOWED === false ?

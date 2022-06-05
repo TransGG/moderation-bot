@@ -29,6 +29,10 @@ if (CONFIG.Hot_Reload_Commands) {
   watchAndReloadCommands(client.interactionHandler);
 }
 
+// TODO: put all strings in a file
+// TODO: warning message to a channel when a message with a banned word is sent or edited
+// TODO: command to send a message embed to a channel, warning to stop a discussion
+
 // login
 console.log(chalk.cyanBright('Logging in'));
 await client.login(CONFIG.Discord_Bot_Token);

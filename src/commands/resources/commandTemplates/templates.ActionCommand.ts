@@ -138,6 +138,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       if (!interaction.isCommand()) return;
       await interaction.deferReply({ ephemeral: true });
 
+      // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
       // get basic options
       const {
         DELETE_MESSAGE,
@@ -245,11 +246,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setRequired(true)
       )
       .addStringOption(new SlashCommandStringOption()
-        .setName('duration')
-        .setDescription('Duration of the timeout, if the action is a timeout')
-        .setRequired(false)
-      )
-      .addStringOption(new SlashCommandStringOption()
         .setName('rule')
         .setDescription('The rule to apply')
         .addChoices(...await (async () => {
@@ -267,6 +263,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
           return RULES;
         })())
+        .setRequired(true)
+      )
+      .addStringOption(new SlashCommandStringOption()
+        .setName('duration')
+        .setDescription('Duration of the timeout, if the action is a timeout')
         .setRequired(false)
       )
       .addStringOption(new SlashCommandStringOption()
