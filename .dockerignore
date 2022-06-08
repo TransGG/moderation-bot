@@ -2,8 +2,10 @@
 **
 
 # Except for
-!/src/**
 !/configs/**
+configs/.forDevs.md
+
+!/src/**
 !/package*.json
 !/tsconfig*.json
 

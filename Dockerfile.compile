@@ -12,3 +12,4 @@ RUN npm prune --production
 
 # remove typescript files and package-lock
 RUN rm -rf src tsconfig.json package-lock.json
+RUN find . -name \*.ts -type f -delete

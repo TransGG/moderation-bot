@@ -1,6 +1,4 @@
 {
-  "NOTE": "RENAME THIS FILE TO `snowflakeMaps.json`",
-  
   "Discord_Guilds": [
     "Not required if using global commands",
     "Set as `null` for all guilds",

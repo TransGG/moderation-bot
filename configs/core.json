@@ -1,6 +1,4 @@
 {
-  "NOTE": "RENAME THIS FILE TO `config.json`",
-  
   "Discord_Bot_Token": "Your discord bot token here",
   "MongoDB_URI":"mongodb://IP:PORT",
   "Global_Commands": true,

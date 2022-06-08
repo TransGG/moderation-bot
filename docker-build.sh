@@ -24,6 +24,3 @@ docker image rm transplace/moderation-bot:compile
 # build the production image
 echo Building transplace/moderation-bot:latest
 docker build --no-cache -t transplace/moderation-bot:latest .
-
-# remove temporary build folder
-rm -rf .tmp/build
