@@ -1,9 +1,9 @@
 // imports
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb'
-import { getConfig } from '../utils.js';
+import { getCoreConf } from '../utils.js';
 
-const CONFIG = await getConfig();
+const CONFIG = await getCoreConf();
 
 console.log(chalk.cyanBright('Connecting to MongoDB'));
 const MONGO_CLIENT = await new MongoClient(CONFIG.MongoDB_URI).connect();

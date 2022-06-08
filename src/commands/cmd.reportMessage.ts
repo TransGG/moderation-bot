@@ -11,6 +11,7 @@ export default new ResponsiveContentMenuCommandBuilder()
   .setResponse(async (interaction, interactionHandler, _command) => {
     if (!interaction.isMessageContextMenu()) return;
     interactionHandler.addComponent(MODALS.report);
+    
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const REPORT_ALLOWED =
       interaction.member?.roles instanceof GuildMemberRoleManager ?
@@ -33,6 +34,7 @@ export default new ResponsiveContentMenuCommandBuilder()
       return;
     }
 
+    // set the customid of the modal's text input to the message id
     const MODAL = _.cloneDeep(MODALS.report);
     MODAL.components[0]?.components[0]?.setCustomId(interaction.targetMessage.id);
 

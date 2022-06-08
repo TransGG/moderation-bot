@@ -1,9 +1,7 @@
-const CUSTOMISATIONS_PATH = '../resources/customisations.json';
-
-export default async function hGetCustomisations(require: NodeRequire) {
+export default async function hGetCustomisations(require: NodeRequire, path: string) {
   // import customisations.json
-  delete require.cache[require.resolve(CUSTOMISATIONS_PATH)];
-  return require(CUSTOMISATIONS_PATH) as {
+  delete require.cache[require.resolve(path)];
+  return require(path) as {
     Moderation_Logs_Per_Page: number
   };
 }

@@ -3,7 +3,7 @@ import type COLLECTIONS from '../../../database/collections.js';
 import { getRules } from '../../../utils.js';
 
 export default async function moderationNotice(log: InstanceType<typeof COLLECTIONS.ModerationLog>) {
-  // TODO: more centralised actions definition?
+  // TODO: more centralised actions definition? possibly add them to templates.actionCommand.ts
   const ACTION = (() => {
     switch (log.action) {
       case 'warn': return 'warned';

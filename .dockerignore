@@ -1,0 +1,10 @@
+# Ignore everything
+**
+
+# Except for
+!/src/**
+!/configs/**
+!/package*.json
+!/tsconfig*.json
+
+!/.tmp/build/**

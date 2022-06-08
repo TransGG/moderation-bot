@@ -41,7 +41,7 @@ export class ResponsiveSlashCommandBuilder
         interaction.options.getSubcommand()
       ));
 
-      // if it's responsive, call it's response
+      // if it's responsive, call its response
       if (
         OPTION instanceof ResponsiveSlashCommandSubcommandGroupBuilder ||
         OPTION instanceof ResponsiveSlashCommandSubcommandBuilder

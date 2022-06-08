@@ -1,4 +1,4 @@
-export default async function hGetConfig(require: NodeRequire, path: string) {
+export default async function hGetCoreConf(require: NodeRequire, path: string) {
   // import config.json
   delete require.cache[require.resolve(path)];
   return require(path) as {

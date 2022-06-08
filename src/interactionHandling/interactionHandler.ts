@@ -35,6 +35,14 @@ export default class InteractionHandler {
   public globalCommands: boolean = true;
   public guilds: string[] | undefined;
 
+  /**
+   * A handler to register and respond to responsive interactions
+   * 
+   * @param client         The client to use
+   * @param commands       The commands to register
+   * @param globalCommands Whether to register commands globally
+   * @param guilds         The guilds to register commands for if it's not globally registered, null for all guilds
+   */
   public constructor(client: Client, commands: Command[], globalCommands: boolean = true, guilds?: string[]) {
     this.globalCommands = globalCommands;
     this.guilds = guilds;

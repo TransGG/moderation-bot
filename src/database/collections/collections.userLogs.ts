@@ -71,6 +71,11 @@ export default class UserLog {
     return REPORT_LOG;
   }
 
+  /**
+   * Add the user to the database if they haven't been added before
+   * 
+   * Updates the user if they have been added before
+   */
   private async update() {
     if (!this._id) return await DATABASE_COLLECTION.insertOne(this);
     else return await DATABASE_COLLECTION.updateOne({ _id: this._id }, { $set: this });

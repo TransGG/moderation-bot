@@ -1,31 +1,60 @@
+import fs from 'node:fs';
 import Module from 'node:module';
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type InteractionHandler from './interactionHandling/interactionHandler.js';
 
 import hGetCommands from './utils/getCommands.js';
-import hGetConfig from './utils/getConfig.js'
+import hGetCoreConf from './utils/getCoreConf.js'
 import hGetCustomisations from './utils/getCustomisations.js';
 import hGetModulesInFolder from './utils/getModulesInFolder.js';
 import hGetRules from './utils/getRules.js';
 import hGetSnowflakeMap from './utils/getSnowflakeMap.js';
 import hWatchAndReloadCommands from './utils/watchAndReloadCommands.js';
 
+/**
+ * @param name The name of the config file
+ * @param ext  The extension of the config file
+ * @returns    The path to the config file, prioritises name.dev.extension if it exists
+ */
+function getConfigPath(name: string, ext: string) {
+  const DEV_CONF = path.join(SRC_PATH, `../configs/${name}.dev.${ext}`);
+  const PROD_CONF = path.join(SRC_PATH, `../configs/${name}.${ext}`);
+
+  const PATH =
+    fs.existsSync(DEV_CONF) ? DEV_CONF :
+      fs.existsSync(PROD_CONF) ? PROD_CONF :
+        null;
+
+  if (!PATH) throw new Error(`'${name}.${ext}' not found in 'configs' folder`);
+  return PATH;
+}
+
 const REQUIRE = Module.createRequire(import.meta.url);
-const CONFIG_PATH = '../resources/config.json';
-const SNOWFLAKE_MAP_PATH = '../resources/snowflakeMap.json';
-const COMMANDS_DIRECTORY = path.join(dirname(fileURLToPath(import.meta.url)), 'commands');
+const SRC_PATH = dirname(fileURLToPath(import.meta.url));
+const COMMANDS_DIRECTORY = path.join(SRC_PATH, 'commands');
+const CONFIGS = Object.freeze({
+  CORE: getConfigPath('core', 'json'),
+  CUSTOMISATIONS: getConfigPath('customisations', 'json'),
+  RULES: getConfigPath('rules', 'json'),
+  SNOWFLAKE_MAP: getConfigPath('snowflakeMap', 'json'),
+});
 
 export async function getCommands() { return await hGetCommands(COMMANDS_DIRECTORY); }
-export async function getConfig() { return await hGetConfig(REQUIRE, CONFIG_PATH); }
-export async function getCustomisations() { return await hGetCustomisations(REQUIRE); }
+export async function getCoreConf() { return await hGetCoreConf(REQUIRE, CONFIGS.CORE); }
+export async function getCustomisations() { return await hGetCustomisations(REQUIRE, CONFIGS.CUSTOMISATIONS); }
 export function getDirectoryFromFileURL(fileURL: string) { return dirname(fileURLToPath(fileURL)); }
 export async function getModulesInFolder(directory: string) { return await hGetModulesInFolder(directory); }
-export async function getRules() { return await hGetRules(REQUIRE); }
-export async function getSnowflakeMap() { return await hGetSnowflakeMap(REQUIRE, SNOWFLAKE_MAP_PATH); }
+export async function getRules() { return await hGetRules(REQUIRE, CONFIGS.RULES); }
+export async function getSnowflakeMap() { return await hGetSnowflakeMap(REQUIRE, CONFIGS.SNOWFLAKE_MAP); }
 export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
   return hWatchAndReloadCommands(interactionHandler, COMMANDS_DIRECTORY);
 }
 
-/** Adds timestamp to an import path to reimport the module */
+/**
+ * Adds timestamp to an import path to reimport the module
+ * 
+ * @param path The path of the file to import
+ * @returns    The path parameter with a timestamp at the end
+ */
 export function t(path: string) { return `${path}?t=${Date.now()}`; }

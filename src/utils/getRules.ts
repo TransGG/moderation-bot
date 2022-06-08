@@ -1,11 +1,10 @@
-const RULES_PATH = '../resources/rules.json';
-
 // helper function to shorten JSON.stringify()
 function s(value: any) { return JSON.stringify(value, null, 2); }
-export default async function hGetRules(require: NodeRequire) {
+
+export default async function hGetRules(require: NodeRequire, path: string) {
   // import rules.json
-  delete require.cache[require.resolve(RULES_PATH)];
-  let rules = require(RULES_PATH) as {
+  delete require.cache[require.resolve(path)];
+  let rules = require(path) as {
     index: number;
     description: string;
     shortDesc: string;
@@ -17,6 +16,8 @@ export default async function hGetRules(require: NodeRequire) {
     }[];
     active: boolean;
   }[];
+
+  // validate json
   if (!(rules instanceof Array)) throw new Error('rules.json must be an array');
 
   rules.forEach((rule, i) => {
