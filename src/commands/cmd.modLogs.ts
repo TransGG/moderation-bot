@@ -6,6 +6,7 @@ import EMBEDS from '@resources/embeds.js';
 export default new ResponsiveContentMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('View Mod Logs')
+  .setDefaultPermission(false)
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isUserContextMenu()) return;
     await interaction.deferReply({ ephemeral: true });
