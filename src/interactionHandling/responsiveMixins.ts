@@ -1,11 +1,11 @@
-import type { Interaction, MessageButton, MessageSelectMenu, Modal, TextInputComponent } from "discord.js";
+import type { Interaction, MessageButton, MessageSelectMenu, Modal, TextInputComponent } from 'discord.js';
 import type {
   ContextMenuCommandBuilder,
   SlashCommandBuilder,
   SlashCommandSubcommandBuilder,
   SlashCommandSubcommandGroupBuilder
-} from "@discordjs/builders";
-import type InteractionHandler from "./interactionHandler.js";
+} from '@discordjs/builders';
+import type InteractionHandler from './interactionHandler.js';
 
 export type CommandConstructor =
   (new (...args: any[]) => ContextMenuCommandBuilder) |

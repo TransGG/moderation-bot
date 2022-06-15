@@ -1,5 +1,5 @@
-import { Guild, Message, MessageEmbed, Snowflake, User } from "discord.js";
-import COLLECTIONS from "../../../database/collections.js";
+import { Guild, Message, MessageEmbed, Snowflake, User } from 'discord.js';
+import COLLECTIONS from '@database/collections.js';
 
 function pushReportsCount(array: string[], length: number, prevTimeLength: number, time: string) {
   if (length && length > prevTimeLength)

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { ResponsiveContentMenuCommandBuilder } from '../interactionHandling/commandBuilders.js';
-import EMBEDS from './resources/embeds.js';
+import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
+import EMBEDS from '@resources/embeds.js';
 
 export default new ResponsiveContentMenuCommandBuilder()
   .setType(ApplicationCommandType.User)

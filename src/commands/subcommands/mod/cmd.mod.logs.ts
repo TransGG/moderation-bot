@@ -1,6 +1,6 @@
 import { SlashCommandUserOption } from '@discordjs/builders';
-import { ResponsiveSlashCommandSubcommandBuilder } from '../../../interactionHandling/commandBuilders.js';
-import EMBEDS from '../../resources/embeds.js';
+import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
+import EMBEDS from '@resources/embeds.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('logs')

@@ -1,2 +1,2 @@
-# information for contributors
+# Information for Contributors
 By submitting code to this repository, you agree that any code you submit to this repository is licensed under the licence in the LICENCE file located in the root directory of this project.

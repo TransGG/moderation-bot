@@ -1,6 +1,6 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
-import { getDirectoryFromFileURL, getModulesInFolder } from '../../utils.js';
+import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 
 const BUTTONS = {
   // TODO: next, prev pages button

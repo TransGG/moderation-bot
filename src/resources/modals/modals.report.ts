@@ -1,8 +1,8 @@
-import { Guild, Message, MessageActionRow, TextInputComponent } from "discord.js";
-import COLLECTIONS from "../../../database/collections.js";
-import { ResponsiveModal } from "../../../interactionHandling/componentBuilders.js";
-import { getSnowflakeMap } from "../../../utils.js";
-import EMBEDS from "../embeds.js";
+import { Guild, Message, MessageActionRow, TextInputComponent } from 'discord.js';
+import COLLECTIONS from '@database/collections.js';
+import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
+import { getSnowflakeMap } from '@utils.js';
+import EMBEDS from '../embeds.js';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')

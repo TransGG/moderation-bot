@@ -1,10 +1,11 @@
 // import stuff
 import chalk from 'chalk';
+import { oneLineTrim } from 'common-tags';
 import { Client, Intents } from 'discord.js';
 import InteractionHandler from './interactionHandling/interactionHandler.js';
-import { getCommands, getCoreConf, getSnowflakeMap, watchAndReloadCommands } from './utils.js';
+import { getCommands, getCoreConf, getAdvancedConf, getSnowflakeMap, watchAndReloadCommands } from './utils.js';
 
-const CONFIG = await getCoreConf();
+const CORE_CONF = await getCoreConf();
 const SNOWFLAKE_MAP = await getSnowflakeMap();
 
 // define client
@@ -21,12 +22,12 @@ let client = new Client({
 Reflect.set(client, 'interactionHandler', new InteractionHandler(
   client,
   await getCommands(),
-  CONFIG.Global_Commands,
+  CORE_CONF.Global_Commands,
   SNOWFLAKE_MAP.Discord_Guilds ?? undefined
 ));
 
 // hot reloading commands have minor performance impact for production
-if (CONFIG.Hot_Reload_Commands) {
+if ((await getAdvancedConf()).Hot_Reload_Commands) {
   console.warn(chalk.yellowBright('Hot Reload Commands is enabled'));
   watchAndReloadCommands(client.interactionHandler);
 }
@@ -34,11 +35,21 @@ if (CONFIG.Hot_Reload_Commands) {
 // TODO: put all strings in a file
 // TODO: warning message to a channel when a message with a banned word is sent or edited
 // TODO: command to send a message embed to a channel, warning to stop a discussion
-// TODO: move 'src/commands/resources/' to 'src/resources/', for message event interactions
 
 // login
 console.log(chalk.cyanBright('Logging in'));
-await client.login(CONFIG.Discord_Bot_Token);
+await client.login(CORE_CONF.Discord_Bot_Token);
 
 // on exception
-process.on('uncaughtException', e => console.error(chalk.redBright(`[unhandledException] ${e.stack ?? e}`)));
+process.on('uncaughtException', async e => {
+  const PATH_MAPPING_EXCEPTION_MATCH = e.message.match(/Cannot find package '(@.*)' imported from (.*)/);
+  PATH_MAPPING_EXCEPTION_MATCH ?
+    (await getAdvancedConf()).Log_Path_Mapping_Errors ?
+      console.warn(chalk.gray(
+        oneLineTrim
+          `Path mapping error: 
+          ${PATH_MAPPING_EXCEPTION_MATCH[1]} imported from 
+          ${PATH_MAPPING_EXCEPTION_MATCH[2]}`
+      )) : null :
+    console.error(chalk.redBright(`[unhandledException] ${e.stack ?? e}`));
+});

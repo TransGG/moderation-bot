@@ -1,5 +1,5 @@
-import _ from "lodash";
-import type { User, Message } from "discord.js";
+import _ from 'lodash';
+import type { User, Message } from 'discord.js';
 
 function getUserState(user: User) {
   return _.pick(user,

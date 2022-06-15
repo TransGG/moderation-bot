@@ -5,6 +5,5 @@ export default async function hGetCoreConf(require: NodeRequire, path: string) {
     Discord_Bot_Token: string;
     MongoDB_URI: string;
     Global_Commands: boolean;
-    Hot_Reload_Commands: boolean;
   };
 }

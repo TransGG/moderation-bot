@@ -1,11 +1,11 @@
 import type { CommandInteraction, GuildMember, Interaction, Message } from 'discord.js';
 import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
-import { ResponsiveSlashCommandSubcommandBuilder } from '../../../interactionHandling/commandBuilders.js';
-import type InteractionHandler from '../../../interactionHandling/interactionHandler.js';
-import COLLECTIONS from '../../../database/collections.js';
+import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
+import type InteractionHandler from '@interactionHandling/interactionHandler.js';
+import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
-import { getRules } from '../../../utils.js';
+import { getRules } from '@utils.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
   const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
-import { getDirectoryFromFileURL, getModulesInFolder } from '../../utils.js';
+import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 import messageReport from './embeds/embeds.messageReport.js';
 import moderationLogs from './embeds/embeds.moderationLogs.js';
 import moderationNotice from './embeds/embeds.moderationNotice.js';

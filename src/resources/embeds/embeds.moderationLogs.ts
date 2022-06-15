@@ -1,6 +1,6 @@
 import { MessageEmbed, User } from 'discord.js';
-import COLLECTIONS from '../../../database/collections.js';
-import { getCustomisations } from '../../../utils.js';
+import COLLECTIONS from '@database/collections.js';
+import { getCustomisations } from '@utils.js';
 
 // TODO: give more info and polish layout
 

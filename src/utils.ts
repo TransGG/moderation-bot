@@ -4,9 +4,11 @@ import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type InteractionHandler from './interactionHandling/interactionHandler.js';
 
+import hAddTimestamp from './utils/addTimestamp.js';
 import hGetCommands from './utils/getCommands.js';
 import hGetCoreConf from './utils/getCoreConf.js'
 import hGetCustomisations from './utils/getCustomisations.js';
+import hGetAdvancedConf from './utils/getAdvancedConf.js'
 import hGetModulesInFolder from './utils/getModulesInFolder.js';
 import hGetRules from './utils/getRules.js';
 import hGetSnowflakeMap from './utils/getSnowflakeMap.js';
@@ -36,6 +38,7 @@ const COMMANDS_DIRECTORY = path.join(SRC_PATH, 'commands');
 const CONFIGS = Object.freeze({
   CORE: getConfigPath('core', 'json'),
   CUSTOMISATIONS: getConfigPath('customisations', 'json'),
+  ADVANCED: getConfigPath('advanced', 'json'),
   RULES: getConfigPath('rules', 'json'),
   SNOWFLAKE_MAP: getConfigPath('snowflakeMap', 'json'),
 });
@@ -43,6 +46,7 @@ const CONFIGS = Object.freeze({
 export async function getCommands() { return await hGetCommands(COMMANDS_DIRECTORY); }
 export async function getCoreConf() { return await hGetCoreConf(REQUIRE, CONFIGS.CORE); }
 export async function getCustomisations() { return await hGetCustomisations(REQUIRE, CONFIGS.CUSTOMISATIONS); }
+export async function getAdvancedConf() { return await hGetAdvancedConf(REQUIRE, CONFIGS.ADVANCED); }
 export function getDirectoryFromFileURL(fileURL: string) { return dirname(fileURLToPath(fileURL)); }
 export async function getModulesInFolder(directory: string) { return await hGetModulesInFolder(directory); }
 export async function getRules() { return await hGetRules(REQUIRE, CONFIGS.RULES); }
@@ -51,10 +55,5 @@ export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
   return hWatchAndReloadCommands(interactionHandler, COMMANDS_DIRECTORY);
 }
 
-/**
- * Adds timestamp to an import path to reimport the module
- * 
- * @param path The path of the file to import
- * @returns    The path parameter with a timestamp at the end
- */
-export function t(path: string) { return `${path}?t=${Date.now()}`; }
+/** A template literal to add `?=<timestamp>` to a string */
+export function t(strings: TemplateStringsArray, ...interpolations: any[]) { return hAddTimestamp(strings, interpolations); }

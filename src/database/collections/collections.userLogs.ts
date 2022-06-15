@@ -4,15 +4,15 @@ import type { ObjectId } from 'mongodb';
 import type ModerationLogT from './subcollections/userLogs/collections.userLogs.moderationLogs.js';
 import type ReportLogT from './subcollections/userLogs/collections.userLogs.reportLogs.js';
 import DATABASE from '../database.js';
-import { t } from '../../utils.js';
+import { t } from '@utils.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
 export const ModerationLog =
-  (await import(t('./subcollections/userLogs/collections.userLogs.moderationLogs.js')))
+  (await import(t`./subcollections/userLogs/collections.userLogs.moderationLogs.js`))
     .default as typeof ModerationLogT;
 
 export const ReportLog =
-  (await import(t('./subcollections/userLogs/collections.userLogs.reportLogs.js')))
+  (await import(t`./subcollections/userLogs/collections.userLogs.reportLogs.js${1}asd`))
     .default as typeof ReportLogT;
 
 export default class UserLog {

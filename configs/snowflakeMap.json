@@ -1,7 +1,7 @@
 {
   "Discord_Guilds": [
     "Not required if using global commands",
-    "Set as `null` for all guilds",
+    "Set as `null` or completely delete the option for all guilds",
     "Guild 3"
   ],
   "Staff_Roles": [
@@ -14,6 +14,10 @@
   ],
   "Reports_Channels": [
     "Channels that user reports will be sent to",
+    "Channel 2"
+  ],
+  "Mod_Logs_Channels": [
+    "Channels that mod logs will be sent to",
     "Channel 2"
   ]
 }

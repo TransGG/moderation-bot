@@ -1,6 +1,6 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
-import { getDirectoryFromFileURL, getModulesInFolder } from '../../utils.js';
+import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 import ActionCommand from './commandTemplates/templates.ActionCommand.js';
 
 const TEMPLATES = {

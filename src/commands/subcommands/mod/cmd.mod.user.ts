@@ -1,4 +1,4 @@
-import TEMPLATES from '../../resources/commandTemplates.js';
+import TEMPLATES from '@resources/commandTemplates.js';
 
 export default new TEMPLATES.ActionCommand('user')
   .setName('user')
