@@ -20,6 +20,7 @@ export default class UserLog {
   public readonly userID: Snowflake;
   public readonly moderationLogs: ModerationLogT[] = [];
   public readonly reportLogs: ReportLogT[] = [];
+  // TODO: put report banned users in database instead
 
   public constructor(userID: Snowflake) {
     this.userID = userID;

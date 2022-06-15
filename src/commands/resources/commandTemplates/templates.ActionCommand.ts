@@ -185,7 +185,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
       if (DELETE_MESSAGE && message?.deletable) message.delete();
 
-      // TODO: send log to a channel
       const LOG = await COLLECTIONS.UserLog.newModLog(
         interaction.user.id,
         USER,
