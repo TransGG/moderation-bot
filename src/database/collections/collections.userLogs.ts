@@ -12,7 +12,7 @@ export const ModerationLog =
     .default as typeof ModerationLogT;
 
 export const ReportLog =
-  (await import(t`./subcollections/userLogs/collections.userLogs.reportLogs.js${1}asd`))
+  (await import(t`./subcollections/userLogs/collections.userLogs.reportLogs.js`))
     .default as typeof ReportLogT;
 
 export default class UserLog {
