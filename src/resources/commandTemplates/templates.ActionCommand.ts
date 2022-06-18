@@ -5,7 +5,7 @@ import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/co
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
-import { getRules } from '@utils.js';
+import { getRules, getSnowflakeMap } from '@utils.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
   const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;
@@ -138,6 +138,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       if (!interaction.isCommand()) return;
       await interaction.deferReply({ ephemeral: true });
 
+      const SNOWFLAKE_MAP = await getSnowflakeMap();
+
       // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
       // get basic options
       const {
@@ -165,6 +167,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         message.author :
         interaction.options.getUser('user', true);
 
+      // TODO: banning users that are not in the server
       let member: GuildMember | undefined;
       try {
         member = await interaction.guild?.members.fetch(USER.id);
@@ -173,7 +176,12 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
       }
 
-      // TODO: disallow taking action on other staff members
+      if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
+        return await interaction.followUp({
+          content: 'You cannot take action on staff members',
+          ephemeral: true
+        });
+
       if (!await ActionCommand.actions.find(action => action[0].value === ACTION)?.[1](
         member,
         REASON,
