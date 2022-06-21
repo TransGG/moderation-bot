@@ -119,8 +119,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         value: 'ban'
       }, async (member, reason, days = 0) => {
         if (!member.bannable) return false;
-        // FIXME: `days` option not working..?
-        return !!await member.ban({ reason: reason, days: days });
+        return !!await member.ban({ reason: reason, deleteMessageDays: days });
       }]
     ];
 
@@ -172,8 +171,27 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       try {
         member = await interaction.guild?.members.fetch(USER.id);
       } finally {
-        if (!member)
+        if (!member) {
+          if (ACTION === "ban") {
+            try {
+              const bannedUser = await interaction.guild.members.ban(USER.id, {reason: REASON, deleteMessageDays: DURATION})
+	      const LOG = await COLLECTIONS.UserLog.newModLog(
+		interaction.user.id, 
+		USER,
+	      	ACTION,
+	      	REASON,
+	      	RULE,
+	      	PRIVATE_NOTES ?? undefined,
+	      	DURATION,
+	      	message
+	      )
+	      return await interaction.followUp({content: `Banned out-of-server member ${'tag' in bannedUser ? `${bannedUser.tag} (${bannedUser.id})` : bannedUser}`});
+	    } catch (e) {
+              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true})
+	    }
+          }
           return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
+	}
       }
 
       if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
