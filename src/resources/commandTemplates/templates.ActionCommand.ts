@@ -1,4 +1,4 @@
-import type { CommandInteraction, GuildMember, Interaction, Message } from 'discord.js';
+import type { CommandInteraction, GuildMember, Interaction, Message, User } from 'discord.js';
 import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
@@ -119,7 +119,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         value: 'ban'
       }, async (member, reason, days = 0) => {
         if (!member.bannable) return false;
-        return !!await member.ban({ reason: reason, deleteMessageDays: days });
+        return !!await member.ban({ reason, days });
       }]
     ];
 
@@ -174,8 +174,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         if (!member) {
           if (ACTION === "ban") {
             try {
-              const bannedUser = await interaction.guild.members.ban(USER.id, {reason: REASON, deleteMessageDays: DURATION})
-	      const LOG = await COLLECTIONS.UserLog.newModLog(
+              const bannedUser = await interaction.guild?.members.ban(USER.id, {reason: REASON, days: DURATION ?? 0})
+	      await COLLECTIONS.UserLog.newModLog(
 		interaction.user.id, 
 		USER,
 	      	ACTION,
@@ -185,7 +185,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 	      	DURATION,
 	      	message
 	      )
-	      return await interaction.followUp({content: `Banned out-of-server member ${'tag' in bannedUser ? `${bannedUser.tag} (${bannedUser.id})` : bannedUser}`});
+	      return await interaction.followUp({content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}`});
 	    } catch (e) {
               return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true})
 	    }
