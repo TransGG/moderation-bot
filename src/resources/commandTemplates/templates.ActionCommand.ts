@@ -187,6 +187,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 	      )
 	      return await interaction.followUp({content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}`});
 	    } catch (e) {
+	      console.log(`Failed to ban a user: ${e}`);
               return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true})
 	    }
           }
