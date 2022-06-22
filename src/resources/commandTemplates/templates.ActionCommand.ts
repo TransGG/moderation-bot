@@ -119,7 +119,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         value: 'ban'
       }, async (member, reason, days = 0) => {
         if (!member.bannable) return false;
-        return !!await member.ban({ reason, days });
+        // FIXME: `days` option not working..?
+	return !!await member.ban({ reason, days });
       }]
     ];
 
