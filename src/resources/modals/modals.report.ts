@@ -33,7 +33,10 @@ export default new ResponsiveModal()
       await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
         const CHANNEL = await interactionHandler.client.channels.fetch(id);
         if (!CHANNEL?.isText()) return;
-        await CHANNEL.send({ content: "<@&981744751520931840>", embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE, GUILD)] });
+        await CHANNEL.send({
+          content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
+          embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE, GUILD)]
+        });
       }));
 
       await interaction.followUp({

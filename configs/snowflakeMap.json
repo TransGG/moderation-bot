@@ -8,6 +8,10 @@
     "Prevents staff from taking action on other staff members",
     "Role 2"
   ],
+  "Report_Notification_Roles": [
+    "Roles that will be pinged upon a message being reported",
+    "Role 2"
+  ],
   "Report_Banned_Roles": [
     "Roles that are banned from reporting",
     "Role 2"

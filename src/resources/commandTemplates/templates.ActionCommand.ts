@@ -120,7 +120,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       }, async (member, reason, days = 0) => {
         if (!member.bannable) return false;
         // FIXME: `days` option not working..?
-	return !!await member.ban({ reason, days });
+        return !!await member.ban({ reason, days });
       }]
     ];
 
@@ -154,14 +154,14 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       if (!IS_VALID_DURATION) return;
 
       let message: Message | undefined;
-      try {
-        if (command.type === 'message')
+      if (command.type === 'message')
+        try {
           message = await interaction.channel
             ?.messages.fetch(interaction.options.getString('message-id', true));
-      } finally {
-        if (!message && command.type === 'message')
-          return await interaction.followUp({ content: 'Message not found', ephemeral: true })
-      }
+        } finally {
+          if (!message)
+            return await interaction.followUp({ content: 'Message not found', ephemeral: true });
+        }
 
       const USER = message ?
         message.author :
@@ -175,25 +175,25 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         if (!member) {
           if (ACTION === "ban") {
             try {
-              const bannedUser = await interaction.guild?.members.ban(USER.id, {reason: REASON, days: DURATION ?? 0})
-	      await COLLECTIONS.UserLog.newModLog(
-		interaction.user.id, 
-		USER,
-	      	ACTION,
-	      	REASON,
-	      	RULE,
-	      	PRIVATE_NOTES ?? undefined,
-	      	DURATION,
-	      	message
-	      )
-	      return await interaction.followUp({content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}`});
-	    } catch (e) {
-	      console.log(`Failed to ban a user: ${e}`);
-              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true})
-	    }
+              const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 })
+              await COLLECTIONS.UserLog.newModLog(
+                interaction.user.id,
+                USER,
+                ACTION,
+                REASON,
+                RULE,
+                PRIVATE_NOTES ?? undefined,
+                DURATION,
+                message
+              )
+              return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+            } catch (e) {
+              console.log(`Failed to ban a user: ${e}`);
+              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true })
+            }
           }
           return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
-	}
+        }
       }
 
       if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
