@@ -23,5 +23,6 @@
   "Mod_Logs_Channels": [
     "Channels that mod logs will be sent to",
     "Channel 2"
-  ]
+  ],
+  "Verified_Role": "The role that members verified with /mod user verify should be given"
 }
