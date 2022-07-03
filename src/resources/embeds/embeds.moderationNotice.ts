@@ -11,6 +11,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
         `<t:${Math.floor((log.timestamp + <number>log.timeoutDuration) / 1000)}:F>`;
       case 'kick': return 'kicked';
       case 'ban': return 'banned';
+      case 'verify': return 'verified';
       default: return 'warned'
     }
   })();
@@ -21,7 +22,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     .setDescription(`You have been ${ACTION}.`)
     .addField('Reason', log.reason, true);
 
-  if (log.rule) EMBED.addField(
+  if (log.rule && log.action !== 'verify') EMBED.addField(
     `Rule ${log.rule?.map(r => ++r).join('.') ?? ''}`,
     <string>(await getRules())[<number>log.rule[0]]?.description,
     true

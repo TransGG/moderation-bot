@@ -7,10 +7,14 @@
   "scripts": {
     "build": "rimraf dist && tsc && tsc-alias",
     "start": "node dist/main",
+    "dev": "rimraf dist && tsc && tsc-alias && node dist/main",
     "watch": "tsc -w --sourceMap & chokidar \"**/*.js\" -c \"tsc-alias\""
   },
   "keywords": [],
   "author": "heshiitou",
+  "contributors": [
+    "Minion3665 <skyler3665@gmail.com>"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@tsconfig/node16-strictest-esm": "^1.0.1",
