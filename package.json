@@ -7,7 +7,6 @@
   "scripts": {
     "build": "rimraf dist && tsc && tsc-alias",
     "start": "node dist/main",
-    "dev": "rimraf dist && tsc && tsc-alias && node dist/main",
     "watch": "tsc -w --sourceMap & chokidar \"**/*.js\" -c \"tsc-alias\""
   },
   "keywords": [],

@@ -99,7 +99,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       }, async (member, reason) => {
         if (!member.manageable) return false;
         const SNOWFLAKE_MAP = await getSnowflakeMap();
-        return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason)
+        return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason);
       }],
       [{
         name: 'Warn',
