@@ -87,11 +87,20 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
   private readonly type: 'user' | 'message';
 
   static readonly actions: [
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
     [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>],
     [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>],
     [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
     [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>]
   ] = [
+      [{
+        name: 'Verify',
+	value: 'verify'
+      }, async (member, reason) => {
+        if (!member.manageable) return false;
+        const SNOWFLAKE_MAP = await getSnowflakeMap();
+        return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason);
+      }],
       [{
         name: 'Warn',
         value: 'warn'
