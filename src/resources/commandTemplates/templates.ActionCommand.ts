@@ -6,6 +6,7 @@ import type InteractionHandler from '@interactionHandling/interactionHandler.js'
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
 import { getRules, getSnowflakeMap } from '@utils.js';
+import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
   const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;
@@ -83,15 +84,33 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
   return [true, duration];
 }
 
+async function sendNotice(USER: User, LOG: ModerationLog, interaction: CommandInteraction) {
+      try {
+        await (await USER.createDM()).send({
+          embeds: [await EMBEDS.moderationNotice(LOG)]
+        });
+      } catch {
+        return await interaction.followUp({
+          content: 'Could not send the notice to this user, they likely have their DMs disabled',
+          ephemeral: true
+        });
+      }
+      return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+}
+
+export interface ExtraActionOptions {
+  sendNoticeFirst?: boolean;
+}
+
 export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuilder {
   private readonly type: 'user' | 'message';
 
   static readonly actions: [
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>]
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>, ExtraActionOptions]
   ] = [
       [{
         name: 'Verify',
@@ -100,28 +119,28 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         if (!member.manageable) return false;
         const SNOWFLAKE_MAP = await getSnowflakeMap();
         return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason);
-      }],
+      }, {}],
       [{
         name: 'Warn',
         value: 'warn'
       }, async member => {
         if (!member.manageable) return false;
         return true;
-      }],
+      }, {}],
       [{
         name: 'Timeout',
         value: 'timeout'
       }, async (member, reason, duration) => {
         if (!member.moderatable) return false;
         return !!await member.timeout(duration ?? null, reason);
-      }],
+      }, {}],
       [{
         name: 'Kick',
         value: 'kick'
       }, async (member, reason) => {
         if (!member.kickable) return false;
         return !!await member.kick(reason);
-      }],
+      }, { sendNoticeFirst: true }],
 
       [{
         name: 'Ban',
@@ -130,7 +149,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         if (!member.bannable) return false;
         // FIXME: `days` option not working..?
         return !!await member.ban({ reason, days });
-      }]
+      }, { sendNoticeFirst: true }]
     ];
 
   public constructor(type: 'user' | 'message') {
@@ -211,16 +230,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           ephemeral: true
         });
 
-      if (!await ActionCommand.actions.find(action => action[0].value === ACTION)?.[1](
-        member,
-        REASON,
-        DURATION
-      )) return await interaction.followUp({
-        content: 'You cannot take action on members with higher permission than this bot',
-        ephemeral: true
-      });
-
-      if (DELETE_MESSAGE && message?.deletable) message.delete();
+      const action = ActionCommand.actions.find(action => action[0].value === ACTION)!; 
 
       const LOG = await COLLECTIONS.UserLog.newModLog(
         interaction.user.id,
@@ -231,19 +241,22 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         PRIVATE_NOTES ?? undefined,
         DURATION,
         message
-      )
+      );
 
-      try {
-        await (await USER.createDM()).send({
-          embeds: [await EMBEDS.moderationNotice(LOG)]
-        });
-      } catch {
-        return await interaction.followUp({
-          content: 'Could not send the notice to this user, they likely have their DMs disabled',
-          ephemeral: true
-        });
-      }
-      return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+      if (action[2]?.sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+
+      if (!await action[1](
+        member,
+        REASON,
+        DURATION
+      )) return await interaction.followUp({
+        content: 'You cannot take action on members with higher permission than this bot',
+        ephemeral: true
+      });
+
+      if (!action[2]?.sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+
+      if (DELETE_MESSAGE && message?.deletable) message.delete();
     };
 
   private addUserParameters() {
