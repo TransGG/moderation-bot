@@ -4,7 +4,7 @@ function s(value: any) { return JSON.stringify(value, null, 2); }
 export default async function hGetRules(require: NodeRequire, path: string) {
   // import rules.json
   delete require.cache[require.resolve(path)];
-  let rules = require(path) as {
+  const rules = require(path) as {
     index: number;
     description: string;
     shortDesc: string;
@@ -46,7 +46,7 @@ export default async function hGetRules(require: NodeRequire, path: string) {
         s(extended)
       );
     });
-  })
+  });
 
   // validated
   return rules;

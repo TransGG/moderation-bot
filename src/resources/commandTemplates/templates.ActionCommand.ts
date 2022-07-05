@@ -21,7 +21,7 @@ function getBasicOptions(interaction: CommandInteraction) {
     REASON,
     PRIVATE_NOTES,
     RULE
-  }
+  };
 }
 
 async function validateDuration(interaction: CommandInteraction): Promise<[boolean, number | undefined]> {
@@ -50,18 +50,18 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
     for (const TIME of <RegExpMatchArray>INPUT.match(/\d+[DHMS]/gi)) {
       const TIME_GROUP = <{ [key in 'amount' | 'unit']: string; }>TIME.match(/(?<amount>\d+)(?<unit>[DHMS])/i)?.groups;
       switch (TIME_GROUP.unit.toUpperCase()) {
-        case 'D':
-          duration += Number(TIME_GROUP.amount) * 86400000;
-          break;
-        case 'H':
-          duration += Number(TIME_GROUP.amount) * 3600000;
-          break;
-        case 'M':
-          duration += Number(TIME_GROUP.amount) * 60000;
-          break;
-        case 'S':
-          duration += Number(TIME_GROUP.amount) * 1000;
-          break;
+      case 'D':
+        duration += Number(TIME_GROUP.amount) * 86400000;
+        break;
+      case 'H':
+        duration += Number(TIME_GROUP.amount) * 3600000;
+        break;
+      case 'M':
+        duration += Number(TIME_GROUP.amount) * 60000;
+        break;
+      case 'S':
+        duration += Number(TIME_GROUP.amount) * 1000;
+        break;
       }
     }
 
@@ -95,7 +95,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
   ] = [
       [{
         name: 'Verify',
-	value: 'verify'
+        value: 'verify'
       }, async (member, reason) => {
         if (!member.manageable) return false;
         const SNOWFLAKE_MAP = await getSnowflakeMap();
@@ -182,9 +182,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         member = await interaction.guild?.members.fetch(USER.id);
       } finally {
         if (!member) {
-          if (ACTION === "ban") {
+          if (ACTION === 'ban') {
             try {
-              const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 })
+              const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 });
               await COLLECTIONS.UserLog.newModLog(
                 interaction.user.id,
                 USER,
@@ -194,14 +194,14 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
                 PRIVATE_NOTES ?? undefined,
                 DURATION,
                 message
-              )
-              return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+              );
+              return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
             } catch (e) {
               console.log(`Failed to ban a user: ${e}`);
-              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true })
+              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
             }
           }
-          return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
+          return await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
         }
       }
 
@@ -231,7 +231,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         PRIVATE_NOTES ?? undefined,
         DURATION,
         message
-      )
+      );
 
       try {
         await (await USER.createDM()).send({
@@ -252,7 +252,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setName('user')
         .setDescription('The user to take action on')
         .setRequired(true)
-      )
+      );
   }
 
   private addMessageParameters() {
@@ -266,7 +266,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setName('message-id')
         .setDescription('The message to take action on')
         .setRequired(true)
-      )
+      );
   }
 
   private async addBaseParameters() {

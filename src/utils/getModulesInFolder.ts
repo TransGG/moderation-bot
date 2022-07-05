@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fs from 'node:fs';
 
 export default async function hGetModulesInFolder(directory: string) {
   // await for all promises in the Array<Promise<any>> to be resolved

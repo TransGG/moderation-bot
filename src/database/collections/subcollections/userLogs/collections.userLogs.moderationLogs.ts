@@ -65,6 +65,6 @@ export default class ModerationLog {
     if (rule) this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;
     if (action === 'timeout' && timeoutDuration) this.timeoutDuration = timeoutDuration;
-    if (message) this.messageInfo = getMessageInfo(message)
+    if (message) this.messageInfo = getMessageInfo(message);
   }
 }

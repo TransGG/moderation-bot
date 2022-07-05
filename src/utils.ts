@@ -6,9 +6,9 @@ import type InteractionHandler from './interactionHandling/interactionHandler.js
 
 import hAddTimestamp from './utils/addTimestamp.js';
 import hGetCommands from './utils/getCommands.js';
-import hGetCoreConf from './utils/getCoreConf.js'
+import hGetCoreConf from './utils/getCoreConf.js';
 import hGetCustomisations from './utils/getCustomisations.js';
-import hGetAdvancedConf from './utils/getAdvancedConf.js'
+import hGetAdvancedConf from './utils/getAdvancedConf.js';
 import hGetModulesInFolder from './utils/getModulesInFolder.js';
 import hGetRules from './utils/getRules.js';
 import hGetSnowflakeMap from './utils/getSnowflakeMap.js';

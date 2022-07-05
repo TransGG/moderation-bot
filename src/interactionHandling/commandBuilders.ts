@@ -33,7 +33,7 @@ export class ResponsiveSlashCommandBuilder
     if (interaction.isCommand()) {
       // if there are no subcommands, call the response of the command and return
       if (!interaction.options.getSubcommand(false))
-      return await this.response?.(interaction, interactionHandler, Object.freeze(this));
+        return await this.response?.(interaction, interactionHandler, Object.freeze(this));
 
       // find the subcommand's group or the subcommand itself if not found
       const OPTION = this.options.find(o => o.toJSON().name === (
