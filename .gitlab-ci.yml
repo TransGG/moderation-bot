@@ -1,11 +1,7 @@
-image: node
-
-stage:
- - lint
-
 eslint:
- stage: lint
- script:
-    - yarn
-    - node_modules/eslint/bin/eslint.js .
+   image: node
+   stage: test
+   script:
+   - yarn
+   - node_modules/eslint/bin/eslint.js .
 
