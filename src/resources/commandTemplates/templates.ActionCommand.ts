@@ -163,46 +163,49 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       if (!IS_VALID_DURATION) return;
 
       let message: Message | undefined;
-      if (command.type === 'message')
+      if (command.type === 'message') {
         try {
           message = await interaction.channel
             ?.messages.fetch(interaction.options.getString('message-id', true));
-        } finally {
-          if (!message)
-            return await interaction.followUp({ content: 'Message not found', ephemeral: true });
+        } catch {
+          // If the message isn't in the same channel we won't be able to fetch it
         }
+        if (!message)
+          return await interaction.followUp({ content: 'Message not found', ephemeral: true });
+      }
 
       const USER = message ?
         message.author :
         interaction.options.getUser('user', true);
 
-      // TODO: banning users that are not in the server
       let member: GuildMember | undefined;
       try {
         member = await interaction.guild?.members.fetch(USER.id);
-      } finally {
-        if (!member) {
-          if (ACTION === 'ban') {
-            try {
-              const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 });
-              await COLLECTIONS.UserLog.newModLog(
-                interaction.user.id,
-                USER,
-                ACTION,
-                REASON,
-                RULE,
-                PRIVATE_NOTES ?? undefined,
-                DURATION,
-                message
-              );
-              return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
-            } catch (e) {
-              console.log(`Failed to ban a user: ${e}`);
-              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
-            }
+      } catch {
+        // Sometimes we won't be able to fetch a member (i.e. if they aren't in the server).
+      }
+
+      if (!member) {
+        if (ACTION === 'ban') {
+          try {
+            const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 });
+            await COLLECTIONS.UserLog.newModLog(
+              interaction.user.id,
+              USER,
+              ACTION,
+              REASON,
+              RULE,
+              PRIVATE_NOTES ?? undefined,
+              DURATION,
+              message
+            );
+            return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+          } catch (e) {
+            console.log(`Failed to ban a user: ${e}`);
+            return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
           }
-          return await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
         }
+        return await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
       }
 
       if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
