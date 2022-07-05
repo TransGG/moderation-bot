@@ -37,7 +37,7 @@ export default class InteractionHandler {
 
   /**
    * A handler to register and respond to responsive interactions
-   * 
+   *
    * @param client         The client to use
    * @param commands       The commands to register
    * @param globalCommands Whether to register commands globally

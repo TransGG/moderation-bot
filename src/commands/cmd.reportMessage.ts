@@ -11,7 +11,7 @@ export default new ResponsiveContentMenuCommandBuilder()
   .setResponse(async (interaction, interactionHandler, _command) => {
     if (!interaction.isMessageContextMenu()) return;
     interactionHandler.addComponent(MODALS.report);
-    
+
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const REPORT_ALLOWED =
       interaction.member?.roles instanceof GuildMemberRoleManager ?

@@ -8,8 +8,7 @@ export default new ResponsiveModal()
   .setCustomId('modals.report')
   .setTitle('Report Message')
   .addComponents(
-    // @ts-ignore, discord.js haven't updated their types for modals..?
-    new MessageActionRow().addComponents(new TextInputComponent()
+    new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent()
       // dynamic custom id, storing channel and message id
       .setLabel('Reason')
       .setPlaceholder('An explanation of why you are reporting this message in any length')

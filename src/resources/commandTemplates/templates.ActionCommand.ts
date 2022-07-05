@@ -39,7 +39,7 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
 
   if (!/^(?: *\d+[DHMS] *)+$/i.test(INPUT)) {
     await interaction.followUp({
-      content: 'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\d+[HMS] *)+$/i`',
+      content: 'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[HMS] *)+$/i`',
       ephemeral: true
     });
     return [false, undefined];

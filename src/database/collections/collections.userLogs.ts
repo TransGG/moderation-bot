@@ -74,7 +74,7 @@ export default class UserLog {
 
   /**
    * Add the user to the database if they haven't been added before
-   * 
+   *
    * Updates the user if they have been added before
    */
   private async update() {
