@@ -85,17 +85,17 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
 }
 
 async function sendNotice(USER: User, LOG: ModerationLog, interaction: CommandInteraction) {
-      try {
-        await (await USER.createDM()).send({
-          embeds: [await EMBEDS.moderationNotice(LOG)]
-        });
-      } catch {
-        return await interaction.followUp({
-          content: 'Could not send the notice to this user, they likely have their DMs disabled',
-          ephemeral: true
-        });
-      }
-      return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+  try {
+    await (await USER.createDM()).send({
+      embeds: [await EMBEDS.moderationNotice(LOG)]
+    });
+  } catch {
+    return await interaction.followUp({
+      content: 'Could not send the notice to this user, they likely have their DMs disabled',
+      ephemeral: true
+    });
+  }
+  return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
 }
 
 export interface ExtraActionOptions {
@@ -240,7 +240,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         return;
       }
 
-      const action = ActionCommand.actions.find(action => action[0].value === ACTION)!; 
+      const action = ActionCommand.actions.find(action => action[0].value === ACTION);
+      if (!action) return;
 
       const LOG = await COLLECTIONS.UserLog.newModLog(
         interaction.user.id,
@@ -259,10 +260,13 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         member,
         REASON,
         DURATION
-      )) return await interaction.followUp({
-        content: 'You cannot take action on members with higher permission than this bot',
-        ephemeral: true
-      });
+      )) {
+        await interaction.followUp({
+          content: 'You cannot take action on members with higher permission than this bot',
+          ephemeral: true
+        });
+        return;
+      }
 
       if (!action[2]?.sendNoticeFirst) await sendNotice(USER, LOG, interaction);
 
