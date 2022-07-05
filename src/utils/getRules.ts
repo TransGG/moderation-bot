@@ -1,4 +1,6 @@
 // helper function to shorten JSON.stringify()
+// JSON.stringify takes any as a first parameter
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function s(value: any) { return JSON.stringify(value, null, 2); }
 
 export default async function hGetRules(require: NodeRequire, path: string) {

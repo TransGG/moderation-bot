@@ -143,7 +143,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
   }
 
   override readonly response =
-    async (interaction: Interaction, _interactionHandler: InteractionHandler, command: this): Promise<any> => {
+    async (interaction: Interaction, _interactionHandler: InteractionHandler, command: this): Promise<void> => {
       if (!interaction.isCommand()) return;
       await interaction.deferReply({ ephemeral: true });
 
@@ -170,8 +170,10 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         } catch {
           // If the message isn't in the same channel we won't be able to fetch it
         }
-        if (!message)
-          return await interaction.followUp({ content: 'Message not found', ephemeral: true });
+        if (!message) {
+          await interaction.followUp({ content: 'Message not found', ephemeral: true });
+          return;
+        }
       }
 
       const USER = message ?
@@ -199,29 +201,37 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
               DURATION,
               message
             );
-            return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+            await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+            return;
           } catch (e) {
             console.log(`Failed to ban a user: ${e}`);
-            return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
+            await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
+            return;
           }
         }
-        return await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
+        await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
+        return;
       }
 
-      if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
-        return await interaction.followUp({
+      if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles)) {
+        await interaction.followUp({
           content: 'You cannot take action on staff members',
           ephemeral: true
         });
+        return;
+      }
 
       if (!await ActionCommand.actions.find(action => action[0].value === ACTION)?.[1](
         member,
         REASON,
         DURATION
-      )) return await interaction.followUp({
-        content: 'You cannot take action on members with higher permission than this bot',
-        ephemeral: true
-      });
+      )) {
+        await interaction.followUp({
+          content: 'You cannot take action on members with higher permission than this bot',
+          ephemeral: true
+        });
+        return;
+      }
 
       if (DELETE_MESSAGE && message?.deletable) message.delete();
 
@@ -241,12 +251,14 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           embeds: [await EMBEDS.moderationNotice(LOG)]
         });
       } catch {
-        return await interaction.followUp({
+        await interaction.followUp({
           content: 'Could not send the notice to this user, they likely have their DMs disabled',
           ephemeral: true
         });
+        return;
       }
-      return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+      await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+      return;
     };
 
   private addUserParameters() {

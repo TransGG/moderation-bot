@@ -56,4 +56,6 @@ export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
 }
 
 /** A template literal to add `?=<timestamp>` to a string */
+// This template literal is safe with any interpolations
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function t(strings: TemplateStringsArray, ...interpolations: any[]) { return hAddTimestamp(strings, interpolations); }
