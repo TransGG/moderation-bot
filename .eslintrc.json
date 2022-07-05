@@ -42,6 +42,7 @@
                 "caughtErrorsIgnorePattern": "^_"
             }
         ],
-        "no-trailing-spaces": "error"
+        "no-trailing-spaces": "error",
+        "@typescript-eslint/no-explicit-any": "error"
     }
 }
