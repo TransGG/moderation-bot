@@ -1,0 +1,11 @@
+image: node
+
+stage:
+ - lint
+
+eslint:
+ stage: lint
+ script:
+    - yarn
+    - node_modules/eslint/bin/eslint.js .
+
