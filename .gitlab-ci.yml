@@ -1,0 +1,7 @@
+eslint:
+   image: node
+   stage: test
+   script:
+   - yarn
+   - node_modules/eslint/bin/eslint.js .
+

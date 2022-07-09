@@ -9,7 +9,7 @@ const CORE_CONF = await getCoreConf();
 const SNOWFLAKE_MAP = await getSnowflakeMap();
 
 // define client
-let client = new Client({
+const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MEMBERS,
@@ -46,9 +46,8 @@ process.on('uncaughtException', async e => {
   PATH_MAPPING_EXCEPTION_MATCH ?
     (await getAdvancedConf()).Log_Path_Mapping_Errors ?
       console.warn(chalk.gray(
-        oneLineTrim
-          `Path mapping error: 
-          ${PATH_MAPPING_EXCEPTION_MATCH[1]} imported from 
+        oneLineTrim`Path mapping error:
+          ${PATH_MAPPING_EXCEPTION_MATCH[1]} imported from
           ${PATH_MAPPING_EXCEPTION_MATCH[2]}`
       )) : null :
     console.error(chalk.redBright(`[unhandledException] ${e.stack ?? e}`));

@@ -1,4 +1,4 @@
-import { Client, CommandInteraction, GuildMember, Interaction, Message, MessageEmbed, User } from 'discord.js';
+import type { Client, CommandInteraction, GuildMember, Interaction, Message, User } from 'discord.js';
 import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
@@ -22,7 +22,7 @@ function getBasicOptions(interaction: CommandInteraction) {
     REASON,
     PRIVATE_NOTES,
     RULE
-  }
+  };
 }
 
 async function getRuleDescriptions(rules: number[]): Promise<string[]> {
@@ -30,28 +30,23 @@ async function getRuleDescriptions(rules: number[]): Promise<string[]> {
 
   const RESULT: string[] = [];
 
-  for (var rule of rules) {
-    RESULT.push(`${rule}. ${RULES.find(r => r.index === rule) ?? 'Unknown rule'}`)
+  for (const RULE of rules) {
+    RESULT.push(`${RULE}. ${RULES.find(rule => rule.index === RULE) ?? 'Unknown rule'}`);
   }
 
   return RESULT;
 }
 
-async function formatLogEmbed(log: ModerationLog, _removePrivateInfo: boolean = false): Promise<MessageEmbed> {
-  return new MessageEmbed()
-    .setTitle(`${log.userState.username} was moderated by ${log.moderator}`)
-    .setDescription(log.reason)
-    .addFields([
-      { name: "Private notes", value: log.privateNotes ?? 'No private notes' },
-      { name: "Rules broken", value: (await getRuleDescriptions(log.rule ?? [])).join(", ") },
-      { name: "Punishment", value: log.action === 'timeout' ? `timeout for ${log.timeoutDuration}` : log.action }
-    ])
+async function formatLogMessage(user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions, _removePrivateInfo = false): Promise<string> {
+  return `${extraActionOptions.emoji} ${log.moderator} *${log.action}* ${log.userState.username}#${log.userState.discriminator} [\`${user.id}\`, <@${user.id}>]\n` +
+         `> ${log.reason}` +
+         `(Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ') }, Private notes: *${log.privateNotes}*)`;
 }
 
-async function sendToLogChannel(client: Client, log: ModerationLog): Promise<void> {
+async function sendToLogChannel(client: Client, user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions): Promise<void> {
   const SNOWFLAKE_MAP = await getSnowflakeMap();
 
-  const LOG_EMBED = await formatLogEmbed(log);
+  const LOG_MESSAGE = await formatLogMessage(user, log, extraActionOptions);
 
   for (const MOD_LOG_CHANNEL of SNOWFLAKE_MAP.Mod_Logs_Channels) {
     const LOG_CHANNEL = await client.channels.fetch(MOD_LOG_CHANNEL);
@@ -59,7 +54,7 @@ async function sendToLogChannel(client: Client, log: ModerationLog): Promise<voi
     if (!LOG_CHANNEL || (LOG_CHANNEL.type !== 'GUILD_TEXT' && LOG_CHANNEL.type !== 'GUILD_NEWS' && LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' && LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' && LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' && LOG_CHANNEL.type !== 'DM')) continue;
 
     try {
-      await LOG_CHANNEL.send({ embeds: [ LOG_EMBED ] });
+      await LOG_CHANNEL.send(LOG_MESSAGE);
     } catch {
       // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
     }
@@ -81,7 +76,7 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
 
   if (!/^(?: *\d+[DHMS] *)+$/i.test(INPUT)) {
     await interaction.followUp({
-      content: 'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\d+[HMS] *)+$/i`',
+      content: 'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[HMS] *)+$/i`',
       ephemeral: true
     });
     return [false, undefined];
@@ -92,18 +87,18 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
     for (const TIME of <RegExpMatchArray>INPUT.match(/\d+[DHMS]/gi)) {
       const TIME_GROUP = <{ [key in 'amount' | 'unit']: string; }>TIME.match(/(?<amount>\d+)(?<unit>[DHMS])/i)?.groups;
       switch (TIME_GROUP.unit.toUpperCase()) {
-        case 'D':
-          duration += Number(TIME_GROUP.amount) * 86400000;
-          break;
-        case 'H':
-          duration += Number(TIME_GROUP.amount) * 3600000;
-          break;
-        case 'M':
-          duration += Number(TIME_GROUP.amount) * 60000;
-          break;
-        case 'S':
-          duration += Number(TIME_GROUP.amount) * 1000;
-          break;
+      case 'D':
+        duration += Number(TIME_GROUP.amount) * 86400000;
+        break;
+      case 'H':
+        duration += Number(TIME_GROUP.amount) * 3600000;
+        break;
+      case 'M':
+        duration += Number(TIME_GROUP.amount) * 60000;
+        break;
+      case 'S':
+        duration += Number(TIME_GROUP.amount) * 1000;
+        break;
       }
     }
 
@@ -125,46 +120,64 @@ async function validateDuration(interaction: CommandInteraction): Promise<[boole
   return [true, duration];
 }
 
+async function sendNotice(USER: User, LOG: ModerationLog, interaction: CommandInteraction) {
+  try {
+    await (await USER.createDM()).send({
+      embeds: [await EMBEDS.moderationNotice(LOG)]
+    });
+  } catch {
+    return await interaction.followUp({
+      content: 'Could not send the notice to this user, they likely have their DMs disabled',
+      ephemeral: true
+    });
+  }
+  return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+}
+
+export interface ExtraActionOptions {
+  sendNoticeFirst?: boolean;
+  emoji: string;
+}
+
 export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuilder {
   private readonly type: 'user' | 'message';
 
   static readonly actions: [
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>]
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>, ExtraActionOptions]
   ] = [
       [{
         name: 'Verify',
-	value: 'verify'
+        value: 'verify'
       }, async (member, reason) => {
         if (!member.manageable) return false;
         const SNOWFLAKE_MAP = await getSnowflakeMap();
         return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason);
-      }],
+      }, { emoji: ':white_check_mark:' }],
       [{
         name: 'Warn',
         value: 'warn'
       }, async member => {
         if (!member.manageable) return false;
         return true;
-      }],
+      }, { emoji: ':warning:' }],
       [{
         name: 'Timeout',
         value: 'timeout'
       }, async (member, reason, duration) => {
         if (!member.moderatable) return false;
         return !!await member.timeout(duration ?? null, reason);
-      }],
+      }, { emoji: ':mute:' }],
       [{
         name: 'Kick',
         value: 'kick'
       }, async (member, reason) => {
         if (!member.kickable) return false;
         return !!await member.kick(reason);
-      }],
-
+      }, { sendNoticeFirst: true, emoji: ':boot:' }],
       [{
         name: 'Ban',
         value: 'ban'
@@ -172,7 +185,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         if (!member.bannable) return false;
         // FIXME: `days` option not working..?
         return !!await member.ban({ reason, days });
-      }]
+      }, { sendNoticeFirst: true, emoji: ':hammer:' }]
     ];
 
   public constructor(type: 'user' | 'message') {
@@ -185,7 +198,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
   }
 
   override readonly response =
-    async (interaction: Interaction, _interactionHandler: InteractionHandler, command: this): Promise<any> => {
+    async (interaction: Interaction, _interactionHandler: InteractionHandler, command: this): Promise<void> => {
       if (!interaction.isCommand()) return;
       await interaction.deferReply({ ephemeral: true });
 
@@ -205,64 +218,66 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       if (!IS_VALID_DURATION) return;
 
       let message: Message | undefined;
-      if (command.type === 'message')
+      if (command.type === 'message') {
         try {
           message = await interaction.channel
             ?.messages.fetch(interaction.options.getString('message-id', true));
-        } finally {
-          if (!message)
-            return await interaction.followUp({ content: 'Message not found', ephemeral: true });
+        } catch {
+          // If the message isn't in the same channel we won't be able to fetch it
         }
+        if (!message) {
+          await interaction.followUp({ content: 'Message not found', ephemeral: true });
+          return;
+        }
+      }
 
       const USER = message ?
         message.author :
         interaction.options.getUser('user', true);
 
-      // TODO: banning users that are not in the server
       let member: GuildMember | undefined;
       try {
         member = await interaction.guild?.members.fetch(USER.id);
-      } finally {
-        if (!member) {
-          if (ACTION === "ban") {
-            try {
-              const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 })
-              await COLLECTIONS.UserLog.newModLog(
-                interaction.user.id,
-                USER,
-                ACTION,
-                REASON,
-                RULE,
-                PRIVATE_NOTES ?? undefined,
-                DURATION,
-                message
-              )
-              return await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === "object" ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
-            } catch (e) {
-              console.log(`Failed to ban a user: ${e}`);
-              return await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true })
-            }
-          }
-          return await interaction.followUp({ content: 'User not found in this server', ephemeral: true })
-        }
+      } catch {
+        // Sometimes we won't be able to fetch a member (i.e. if they aren't in the server).
       }
 
-      if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles))
-        return await interaction.followUp({
+      if (!member) {
+        if (ACTION === 'ban') {
+          try {
+            const bannedUser = await interaction.guild?.members.ban(USER.id, { reason: REASON, days: DURATION ?? 0 });
+            await COLLECTIONS.UserLog.newModLog(
+              interaction.user.id,
+              USER,
+              ACTION,
+              REASON,
+              RULE,
+              PRIVATE_NOTES ?? undefined,
+              DURATION,
+              message
+            );
+            await interaction.followUp({ content: `Banned out-of-server member ${typeof bannedUser === 'object' ? `${(bannedUser as User).tag} (${bannedUser.id})` : bannedUser}` });
+            return;
+          } catch (e) {
+            console.log(`Failed to ban a user: ${e}`);
+            await interaction.followUp({ content: 'I couldn\'t ban that user, check that you provided the right ID', ephemeral: true });
+            return;
+          }
+        }
+        await interaction.followUp({ content: 'User not found in this server', ephemeral: true });
+        return;
+      }
+
+      if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles)) {
+        await interaction.followUp({
           content: 'You cannot take action on staff members',
           ephemeral: true
         });
+        return;
+      }
 
-      if (!await ActionCommand.actions.find(action => action[0].value === ACTION)?.[1](
-        member,
-        REASON,
-        DURATION
-      )) return await interaction.followUp({
-        content: 'You cannot take action on members with higher permission than this bot',
-        ephemeral: true
-      });
-
-      if (DELETE_MESSAGE && message?.deletable) message.delete();
+      const action = ActionCommand.actions.find(action => action[0].value === ACTION);
+      if (!action) return;
 
       const LOG = await COLLECTIONS.UserLog.newModLog(
         interaction.user.id,
@@ -273,21 +288,26 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         PRIVATE_NOTES ?? undefined,
         DURATION,
         message
-      )
+      );
 
-      await sendToLogChannel(interaction.client, LOG)
+      await sendToLogChannel(interaction.client, USER, LOG, action[2]);
+      if (action[2].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
 
-      try {
-        await (await USER.createDM()).send({
-          embeds: [await EMBEDS.moderationNotice(LOG)]
-        });
-      } catch {
-        return await interaction.followUp({
-          content: 'Could not send the notice to this user, they likely have their DMs disabled',
+      if (!await action[1](
+        member,
+        REASON,
+        DURATION
+      )) {
+        await interaction.followUp({
+          content: 'You cannot take action on members with higher permission than this bot',
           ephemeral: true
         });
+        return;
       }
-      return await interaction.followUp({ content: 'Notice sent', ephemeral: true });
+
+      if (!action[2].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+
+      if (DELETE_MESSAGE && message?.deletable) message.delete();
     };
 
   private addUserParameters() {
@@ -296,7 +316,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setName('user')
         .setDescription('The user to take action on')
         .setRequired(true)
-      )
+      );
   }
 
   private addMessageParameters() {
@@ -310,7 +330,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setName('message-id')
         .setDescription('The message to take action on')
         .setRequired(true)
-      )
+      );
   }
 
   private async addBaseParameters() {

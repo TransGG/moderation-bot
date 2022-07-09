@@ -11,7 +11,7 @@ const TEMPLATES = {
 const TEMPLATES_FOLDER = path.join(getDirectoryFromFileURL(import.meta.url), 'commandTemplates');
 chokidar.watch(TEMPLATES_FOLDER).on('change', async path => {
   if (!path.endsWith('.js')) return;
-  (await getModulesInFolder(TEMPLATES_FOLDER)).forEach(array => 
+  (await getModulesInFolder(TEMPLATES_FOLDER)).forEach(array =>
     Reflect.set(TEMPLATES, <string>array[0].split('.')[1], array[1]));
 });
 

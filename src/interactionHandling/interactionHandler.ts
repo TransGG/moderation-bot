@@ -30,20 +30,20 @@ export default class InteractionHandler {
   public readonly restClient?: REST;
 
   public readonly commands: Command[];
-  public readonly components: Componenent[] = []
+  public readonly components: Componenent[] = [];
 
-  public globalCommands: boolean = true;
+  public globalCommands = true;
   public guilds: string[] | undefined;
 
   /**
    * A handler to register and respond to responsive interactions
-   * 
+   *
    * @param client         The client to use
    * @param commands       The commands to register
    * @param globalCommands Whether to register commands globally
    * @param guilds         The guilds to register commands for if it's not globally registered, null for all guilds
    */
-  public constructor(client: Client, commands: Command[], globalCommands: boolean = true, guilds?: string[]) {
+  public constructor(client: Client, commands: Command[], globalCommands = true, guilds?: string[]) {
     this.globalCommands = globalCommands;
     this.guilds = guilds;
     this.commands = commands;
@@ -56,7 +56,7 @@ export default class InteractionHandler {
         console.info(chalk.greenBright('Registered slash commands'));
         console.info(chalk.greenBright('Ready'));
       })
-      .on('interactionCreate', async i => await this.respond(i))
+      .on('interactionCreate', async i => await this.respond(i));
   }
 
   public async respond(interaction: Interaction) {
@@ -84,7 +84,7 @@ export default class InteractionHandler {
     const EXISTING = this.components.find(i =>
       i.toJSON().type === componenet.toJSON().type &&
       i.customId == componenet.customId);
-    if (EXISTING) this.components.splice(this.components.indexOf(EXISTING), 1)
+    if (EXISTING) this.components.splice(this.components.indexOf(EXISTING), 1);
 
     this.components.push(componenet);
   }
