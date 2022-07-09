@@ -6,13 +6,13 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
   // TODO: more centralised actions definition? possibly add them to templates.actionCommand.ts
   const ACTION = (() => {
     switch (log.action) {
-      case 'warn': return 'warned';
-      case 'timeout': return 'timed out until ' +
+    case 'warn': return 'warned';
+    case 'timeout': return 'timed out until ' +
         `<t:${Math.floor((log.timestamp + <number>log.timeoutDuration) / 1000)}:F>`;
-      case 'kick': return 'kicked';
-      case 'ban': return 'banned';
-      case 'verify': return 'verified';
-      default: return 'warned'
+    case 'kick': return 'kicked';
+    case 'ban': return 'banned';
+    case 'verify': return 'verified';
+    default: return 'warned';
     }
   })();
 

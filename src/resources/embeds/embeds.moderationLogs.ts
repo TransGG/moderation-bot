@@ -4,7 +4,7 @@ import { getCustomisations } from '@utils.js';
 
 // TODO: give more info and polish layout
 
-export default async function moderationLogs(user: User, page: number = 1) {
+export default async function moderationLogs(user: User, page = 1) {
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
 
   const LOGS = (await COLLECTIONS.UserLog.getUserLog(user.id)).moderationLogs;
@@ -22,7 +22,7 @@ export default async function moderationLogs(user: User, page: number = 1) {
         inline: true
       },
       {
-        name: `Private Notes`,
+        name: 'Private Notes',
         value: log.privateNotes ?? 'None given',
         inline: true
       },

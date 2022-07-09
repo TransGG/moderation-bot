@@ -38,7 +38,7 @@ export default async function messageReport(reporter: User, reason: string, mess
     .addField('Message Channel', message.channel.toString(), true)
     .addField('Reported User', message.author.toString(), true)
     .addField('\u200b', '\u200b')
-    .setTimestamp()
+    .setTimestamp();
 
   if (message.content) EMBED.addField(
     'Reported Message Content',

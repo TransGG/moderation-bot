@@ -1,6 +1,6 @@
 // imports
 import chalk from 'chalk';
-import { MongoClient } from 'mongodb'
+import { MongoClient } from 'mongodb';
 import { getCoreConf } from '@utils.js';
 
 const CONFIG = await getCoreConf();

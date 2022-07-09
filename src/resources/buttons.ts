@@ -10,7 +10,7 @@ const BUTTONS = {
 const BUTTONS_FOLDER = path.join(getDirectoryFromFileURL(import.meta.url), 'buttons');
 chokidar.watch(BUTTONS_FOLDER).on('change', async path => {
   if (!path.endsWith('.js')) return;
-  (await getModulesInFolder(BUTTONS_FOLDER)).forEach(array => 
+  (await getModulesInFolder(BUTTONS_FOLDER)).forEach(array =>
     Reflect.set(BUTTONS, <string>array[0].split('.')[1], array[1]));
 });
 
