@@ -7,6 +7,7 @@ export default async function hGetSnowflakeMap(require: NodeRequire, path: strin
     Report_Notification_Roles: string[];
     Report_Banned_Roles: string[];
     Reports_Channels: string[];
+    Mod_Logs_Channels: string[];
     Verified_Role: string;
   };
 }

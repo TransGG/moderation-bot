@@ -1,4 +1,4 @@
-import type { CommandInteraction, GuildMember, Interaction, Message, User } from 'discord.js';
+import { Client, CommandInteraction, GuildMember, Interaction, Message, MessageEmbed, User } from 'discord.js';
 import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
@@ -6,6 +6,7 @@ import type InteractionHandler from '@interactionHandling/interactionHandler.js'
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
 import { getRules, getSnowflakeMap } from '@utils.js';
+import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
   const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;
@@ -21,6 +22,47 @@ function getBasicOptions(interaction: CommandInteraction) {
     REASON,
     PRIVATE_NOTES,
     RULE
+  }
+}
+
+async function getRuleDescriptions(rules: number[]): Promise<string[]> {
+  const RULES = await getRules();
+
+  const RESULT: string[] = [];
+
+  for (var rule of rules) {
+    RESULT.push(`${rule}. ${RULES.find(r => r.index === rule) ?? 'Unknown rule'}`)
+  }
+
+  return RESULT;
+}
+
+async function formatLogEmbed(log: ModerationLog, _removePrivateInfo: boolean = false): Promise<MessageEmbed> {
+  return new MessageEmbed()
+    .setTitle(`${log.userState.username} was moderated by ${log.moderator}`)
+    .setDescription(log.reason)
+    .addFields([
+      { name: "Private notes", value: log.privateNotes ?? 'No private notes' },
+      { name: "Rules broken", value: (await getRuleDescriptions(log.rule ?? [])).join(", ") },
+      { name: "Punishment", value: log.action === 'timeout' ? `timeout for ${log.timeoutDuration}` : log.action }
+    ])
+}
+
+async function sendToLogChannel(client: Client, log: ModerationLog): Promise<void> {
+  const SNOWFLAKE_MAP = await getSnowflakeMap();
+
+  const LOG_EMBED = await formatLogEmbed(log);
+
+  for (const MOD_LOG_CHANNEL of SNOWFLAKE_MAP.Mod_Logs_Channels) {
+    const LOG_CHANNEL = await client.channels.fetch(MOD_LOG_CHANNEL);
+
+    if (!LOG_CHANNEL || (LOG_CHANNEL.type !== 'GUILD_TEXT' && LOG_CHANNEL.type !== 'GUILD_NEWS' && LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' && LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' && LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' && LOG_CHANNEL.type !== 'DM')) continue;
+
+    try {
+      await LOG_CHANNEL.send({ embeds: [ LOG_EMBED ] });
+    } catch {
+      // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
+    }
   }
 }
 
@@ -232,6 +274,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         DURATION,
         message
       )
+
+      await sendToLogChannel(interaction.client, LOG)
 
       try {
         await (await USER.createDM()).send({
