@@ -6,7 +6,7 @@ const COLLECTIONS = {
   UserLog,
   ModerationLog,
   ReportLog
-}
+};
 
 // TODO: insert chokidar hot reload shenanigans here
 
