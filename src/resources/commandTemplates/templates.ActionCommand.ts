@@ -1,4 +1,4 @@
-import type { Client, CommandInteraction, GuildMember, Interaction, Message, User } from 'discord.js';
+import { Client, CommandInteraction, DiscordAPIError, GuildMember, Interaction, Message, User } from 'discord.js';
 import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
@@ -31,14 +31,21 @@ async function getRuleDescriptions(rules: number[]): Promise<string[]> {
   const RESULT: string[] = [];
 
   for (const RULE of rules) {
-    RESULT.push(`${RULE}. ${RULES.find(rule => rule.index === RULE) ?? 'Unknown rule'}`);
+    RESULT.push(`${RULE - 1}. ${RULES.find(rule => rule.index === RULE - 1) ?? 'Unknown rule'}`);
   }
 
   return RESULT;
 }
 
-async function formatLogMessage(user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions, _removePrivateInfo = false): Promise<string> {
-  return `${extraActionOptions.emoji} ${log.moderator} *${log.action}* ${log.userState.username}#${log.userState.discriminator} [\`${user.id}\`, <@${user.id}>]\n` +
+async function formatLogMessage(client: Client, user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions, _removePrivateInfo = false): Promise<string> {
+  let moderator: User | null = null;
+  try {
+    moderator = await client.users.fetch('0');
+  } catch (e) {
+    if (!(e instanceof DiscordAPIError)) throw e;
+  }
+
+  return `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense}* ${log.userState.username}#${log.userState.discriminator} [\`${user.id}\`, <@${user.id}>]\n` +
          `> ${log.reason}` +
          `(Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ') }, Private notes: *${log.privateNotes}*)`;
 }
@@ -46,7 +53,7 @@ async function formatLogMessage(user: User, log: ModerationLog, extraActionOptio
 async function sendToLogChannel(client: Client, user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions): Promise<void> {
   const SNOWFLAKE_MAP = await getSnowflakeMap();
 
-  const LOG_MESSAGE = await formatLogMessage(user, log, extraActionOptions);
+  const LOG_MESSAGE = await formatLogMessage(client, user, log, extraActionOptions);
 
   for (const MOD_LOG_CHANNEL of SNOWFLAKE_MAP.Mod_Logs_Channels) {
     const LOG_CHANNEL = await client.channels.fetch(MOD_LOG_CHANNEL);
