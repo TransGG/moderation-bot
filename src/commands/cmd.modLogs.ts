@@ -11,11 +11,13 @@ export default new ResponsiveContentMenuCommandBuilder()
     if (!interaction.isUserContextMenu()) return;
     await interaction.deferReply({ ephemeral: true });
 
-    return await interaction.followUp({
+    await interaction.followUp({
       embeds: [await EMBEDS.moderationLogs(interaction.targetUser)],
       components: [
         // TODO: Buttons
       ],
       ephemeral: true
     });
+
+    return;
   });
