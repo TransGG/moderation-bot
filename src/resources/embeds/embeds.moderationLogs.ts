@@ -28,7 +28,7 @@ export default async function moderationLogs(user: User, page = 1) {
       },
       {
         name: `<t:${Math.floor(log.timestamp / 1000)}:R>`,
-        value: '\u200b\n\u200b\n',
+        value: log.action,
         inline: true
       }
     ]).flat());
