@@ -192,27 +192,34 @@
   },
   {
     "index": 8,
-    "shortDesc": "",
-    "description": "If you see something against the rules or something that makes you feel unsafe, let staff know. We want this space to be as inclusive and safe as possible.",
-    "extended": [],
-    "active": false
-  },
-  {
-    "index": 9,
-    "shortDesc": "",
-    "description": "Similarly, if you are unsure if something is allowed, feel free to ask.",
-    "extended": [],
-    "active": false
-  },
-  {
-    "index": 10,
     "shortDesc": "Non-English conversations",
     "description": "Please keep all conversations in English. Short phrases or jokes in another language are allowed, but we cannot effectively moderate non-English extensive discussions.",
     "extended": [],
     "active": true
   },
   {
+    "index": 9,
+    "shortDesc": "Be the bigger person",
+    "description": "Please be the bigger person—if you see someone trying to start a fight, don't fight back; DM staff. Similarly, if you see anything that may cause issues or someone possibly willingly causing them, don’t try to argue them into submission. Don’t feed the trolls, nor your own trauma responses.",
+    "extended": [],
+    "active": false
+  },
+  {
+    "index": 10,
+    "shortDesc": "Remember to report",
+    "description": "If you see something against the rules or something that makes you feel unsafe, let staff know. We want this space to be as inclusive and safe as possible.",
+    "extended": [],
+    "active": false
+  },
+  {
     "index": 11,
+    "shortDesc": "Ask if you're unsure",
+    "description": "Similarly, if you are unsure if something is allowed, feel free to ask.",
+    "extended": [],
+    "active": false
+  },
+  {
+    "index": 12,
     "shortDesc": "Other",
     "description": "Other",
     "extended": [],
