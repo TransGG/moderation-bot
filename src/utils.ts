@@ -1,18 +1,19 @@
 import fs from 'node:fs';
-import Module from 'node:module';
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type InteractionHandler from './interactionHandling/interactionHandler.js';
 
 import hAddTimestamp from './utils/addTimestamp.js';
 import hGetCommands from './utils/getCommands.js';
-import hGetCoreConf from './utils/getCoreConf.js';
-import hGetCustomisations from './utils/getCustomisations.js';
-import hGetAdvancedConf from './utils/getAdvancedConf.js';
 import hGetModulesInFolder from './utils/getModulesInFolder.js';
-import hGetRules from './utils/getRules.js';
-import hGetSnowflakeMap from './utils/getSnowflakeMap.js';
 import hWatchAndReloadCommands from './utils/watchAndReloadCommands.js';
+import cleanImport from 'utils/cleanImport.js';
+
+import type advancedType from '../configs/advancedType';
+import type coreType from '../configs/coreType';
+import type customisationsType from '../configs/customisationsType';
+import type rulesType from '../configs/rulesType';
+import type snowflakeMapType from '../configs/snowflakeMapType';
 
 /**
  * @param name The name of the config file
@@ -20,37 +21,63 @@ import hWatchAndReloadCommands from './utils/watchAndReloadCommands.js';
  * @returns    The path to the config file, prioritises name.dev.extension if it exists
  */
 function getConfigPath(name: string, ext: string) {
-  const DEV_CONF = path.join(SRC_PATH, `../configs/${name}.dev.${ext}`);
-  const PROD_CONF = path.join(SRC_PATH, `../configs/${name}.${ext}`);
+  if (!ext.startsWith('.')) ext = `.${ext}`;
 
-  const PATH =
-    fs.existsSync(DEV_CONF) ? DEV_CONF :
-      fs.existsSync(PROD_CONF) ? PROD_CONF :
-        null;
+  let dev_conf;
+  let prod_conf;
+  if (ext === '.ts') {
+    dev_conf = path.join(SRC_PATH, `../dist/configs/${name}.dev${ext}`);
+    prod_conf = path.join(SRC_PATH, `../dist/configs/${name}.js`);
+  } else {
+    dev_conf = path.join(SRC_PATH, `../configs/${name}.dev${ext}`);
+    prod_conf = path.join(SRC_PATH, `../configs/${name}${ext}`);
+  }
 
-  if (!PATH) throw new Error(`'${name}.${ext}' not found in 'configs' folder`);
+  const PATH = fs.existsSync(dev_conf)
+    ? dev_conf
+    : fs.existsSync(prod_conf)
+      ? prod_conf
+      : null;
+
+  if (!PATH) throw new Error(`'${name}${ext}' not found in 'configs' folder`);
+
   return PATH;
 }
 
-const REQUIRE = Module.createRequire(import.meta.url);
 const SRC_PATH = dirname(fileURLToPath(import.meta.url));
 const COMMANDS_DIRECTORY = path.join(SRC_PATH, 'commands');
 const CONFIGS = Object.freeze({
-  CORE: getConfigPath('core', 'json'),
-  CUSTOMISATIONS: getConfigPath('customisations', 'json'),
-  ADVANCED: getConfigPath('advanced', 'json'),
-  RULES: getConfigPath('rules', 'json'),
-  SNOWFLAKE_MAP: getConfigPath('snowflakeMap', 'json'),
+  CORE: getConfigPath('core', 'ts'),
+  CUSTOMISATIONS: getConfigPath('customisations', 'ts'),
+  ADVANCED: getConfigPath('advanced', 'ts'),
+  RULES: getConfigPath('rules', 'ts'),
+  SNOWFLAKE_MAP: getConfigPath('snowflakeMap', 'ts'),
 });
 
-export async function getCommands() { return await hGetCommands(COMMANDS_DIRECTORY); }
-export async function getCoreConf() { return await hGetCoreConf(REQUIRE, CONFIGS.CORE); }
-export async function getCustomisations() { return await hGetCustomisations(REQUIRE, CONFIGS.CUSTOMISATIONS); }
-export async function getAdvancedConf() { return await hGetAdvancedConf(REQUIRE, CONFIGS.ADVANCED); }
-export function getDirectoryFromFileURL(fileURL: string) { return dirname(fileURLToPath(fileURL)); }
-export async function getModulesInFolder(directory: string) { return await hGetModulesInFolder(directory); }
-export async function getRules() { return await hGetRules(REQUIRE, CONFIGS.RULES); }
-export async function getSnowflakeMap() { return await hGetSnowflakeMap(REQUIRE, CONFIGS.SNOWFLAKE_MAP); }
+export async function getCommands() {
+  return await hGetCommands(COMMANDS_DIRECTORY);
+}
+export async function getCoreConf(): Promise<coreType> {
+  return await cleanImport(CONFIGS.CORE);
+}
+export async function getCustomisations(): Promise<customisationsType> {
+  return await cleanImport(CONFIGS.CUSTOMISATIONS);
+}
+export async function getAdvancedConf(): Promise<advancedType> {
+  return await cleanImport(CONFIGS.ADVANCED);
+}
+export async function getRules(): Promise<rulesType> {
+  return await cleanImport(CONFIGS.RULES);
+}
+export async function getSnowflakeMap(): Promise<snowflakeMapType> {
+  return await cleanImport(CONFIGS.SNOWFLAKE_MAP);
+}
+export function getDirectoryFromFileURL(fileURL: string) {
+  return dirname(fileURLToPath(fileURL));
+}
+export async function getModulesInFolder(directory: string) {
+  return await hGetModulesInFolder(directory);
+}
 export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
   return hWatchAndReloadCommands(interactionHandler, COMMANDS_DIRECTORY);
 }
@@ -58,4 +85,6 @@ export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
 /** A template literal to add `?=<timestamp>` to a string */
 // This template literal is safe with any interpolations
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function t(strings: TemplateStringsArray, ...interpolations: any[]) { return hAddTimestamp(strings, interpolations); }
+export function t(strings: TemplateStringsArray, ...interpolations: any[]) {
+  return hAddTimestamp(strings, interpolations);
+}

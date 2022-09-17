@@ -1,5 +1,0 @@
-{
-  "Discord_Bot_Token": "Your discord bot token here",
-  "MongoDB_URI":"mongodb://IP:PORT",
-  "Global_Commands": true
-}
