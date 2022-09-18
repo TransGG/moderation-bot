@@ -8,6 +8,8 @@ import EMBEDS from '../embeds.js';
 import { getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
+import type { ruleType } from '../../../configs/rulesType.js';
+
 function getBasicOptions(interaction: CommandInteraction) {
   const DELETE_MESSAGE = interaction.options.getBoolean('delete-message', false) ?? undefined;
   const ACTION = interaction.options.getString('action', true);
@@ -31,7 +33,7 @@ async function getRuleDescriptions(rules: number[]): Promise<string[]> {
   const RESULT: string[] = [];
 
   for (const RULE of rules) {
-    RESULT.push(`${RULE - 1}. ${RULES.find(rule => rule.index === RULE - 1) ?? 'Unknown rule'}`);
+    RESULT.push(`${RULE + 1}. ${(RULES[RULE])?.shortDesc ?? 'Unknown rule'}`);
   }
 
   return RESULT;
@@ -40,14 +42,15 @@ async function getRuleDescriptions(rules: number[]): Promise<string[]> {
 async function formatLogMessage(client: Client, user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions, _removePrivateInfo = false): Promise<string> {
   let moderator: User | null = null;
   try {
-    moderator = await client.users.fetch('0');
+    moderator = await client.users.fetch(log.moderator);
   } catch (e) {
     if (!(e instanceof DiscordAPIError)) throw e;
   }
 
   return `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense}* ${log.userState.username}#${log.userState.discriminator} [\`${user.id}\`, <@${user.id}>]\n` +
          `> ${log.reason}` +
-         `(Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ') }, Private notes: *${log.privateNotes}*)`;
+         ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ') }` +
+    (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')');
 }
 
 async function sendToLogChannel(client: Client, user: User, log: ModerationLog, extraActionOptions: ExtraActionOptions): Promise<void> {
@@ -55,13 +58,24 @@ async function sendToLogChannel(client: Client, user: User, log: ModerationLog, 
 
   const LOG_MESSAGE = await formatLogMessage(client, user, log, extraActionOptions);
 
-  for (const MOD_LOG_CHANNEL of SNOWFLAKE_MAP.Mod_Logs_Channels) {
+  const RULES = await getRules();
+
+  const LOG_CHANNEL_CATEGORIES = [log.action];
+  for (const RULE of log.rule ?? []) {
+    for (const CATEGORY of RULES[RULE]?.extraCategories ?? []) LOG_CHANNEL_CATEGORIES.push(CATEGORY);
+  }
+
+  const LOG_CHANNELS = LOG_CHANNEL_CATEGORIES.flatMap(CATEGORY => {
+    return SNOWFLAKE_MAP.Mod_Logs_Channels[CATEGORY] ?? SNOWFLAKE_MAP.Mod_Logs_Channels['default'] ?? []
+  }).filter((item, index, array) => array.indexOf(item) === index);
+
+  for (const MOD_LOG_CHANNEL of LOG_CHANNELS) {
     const LOG_CHANNEL = await client.channels.fetch(MOD_LOG_CHANNEL);
 
     if (!LOG_CHANNEL || (LOG_CHANNEL.type !== 'GUILD_TEXT' && LOG_CHANNEL.type !== 'GUILD_NEWS' && LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' && LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' && LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' && LOG_CHANNEL.type !== 'DM')) continue;
 
     try {
-      await LOG_CHANNEL.send(LOG_MESSAGE);
+      await LOG_CHANNEL.send({ content: LOG_MESSAGE, allowedMentions: { parse: [] } });
     } catch {
       // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
     }
@@ -144,55 +158,66 @@ async function sendNotice(USER: User, LOG: ModerationLog, interaction: CommandIn
 export interface ExtraActionOptions {
   sendNoticeFirst?: boolean;
   emoji: string;
+  pastTense: string;
 }
 
 export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuilder {
   private readonly type: 'user' | 'message';
 
   static readonly actions: [
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, ExtraActionOptions],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>, ExtraActionOptions],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
-    [APIApplicationCommandOptionChoice<string>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>, ExtraActionOptions]
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, (member: GuildMember) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, (member: GuildMember, reason: string, duration?: number) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, (member: GuildMember, reason: string) => Promise<boolean>, ExtraActionOptions],
+    [APIApplicationCommandOptionChoice<string>, (member: GuildMember) => Promise<boolean>, (member: GuildMember, reason: string, days?: number) => Promise<boolean>, ExtraActionOptions]
   ] = [
       [{
         name: 'Verify',
         value: 'verify'
-      }, async (member, reason) => {
+      },
+      async member => { return member.manageable; },
+      async (member, reason) => {
         if (!member.manageable) return false;
         const SNOWFLAKE_MAP = await getSnowflakeMap();
-        return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Role, reason);
-      }, { emoji: ':white_check_mark:' }],
+        return !!await member.roles.add(SNOWFLAKE_MAP.Verified_Roles, reason);
+      }, { emoji: ':white_check_mark:', pastTense: 'verified'}],
       [{
         name: 'Warn',
         value: 'warn'
-      }, async member => {
+      },
+      async member => { return member.manageable; },
+      async member => {
         if (!member.manageable) return false;
         return true;
-      }, { emoji: ':warning:' }],
+      }, { emoji: ':warning:', pastTense: 'warned' }],
       [{
         name: 'Timeout',
         value: 'timeout'
-      }, async (member, reason, duration) => {
+      },
+      async member => { return member.moderatable; },
+      async (member, reason, duration) => {
         if (!member.moderatable) return false;
         return !!await member.timeout(duration ?? null, reason);
-      }, { emoji: ':mute:' }],
+      }, { emoji: ':mute:', pastTense: 'timed out'}],
       [{
         name: 'Kick',
         value: 'kick'
-      }, async (member, reason) => {
+      },
+      async member => { return member.kickable; },
+      async (member, reason) => {
         if (!member.kickable) return false;
         return !!await member.kick(reason);
-      }, { sendNoticeFirst: true, emoji: ':boot:' }],
+      }, { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked'}],
       [{
         name: 'Ban',
         value: 'ban'
-      }, async (member, reason, days = 0) => {
+      },
+      async member => { return member.bannable; },
+      async (member, reason, days = 0) => {
         if (!member.bannable) return false;
         // FIXME: `days` option not working..?
         return !!await member.ban({ reason, days });
-      }, { sendNoticeFirst: true, emoji: ':hammer:' }]
+      }, { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned'}]
     ];
 
   public constructor(type: 'user' | 'message') {
@@ -297,13 +322,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         message
       );
 
-      await sendToLogChannel(interaction.client, USER, LOG, action[2]);
-      if (action[2].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
-
       if (!await action[1](
         member,
-        REASON,
-        DURATION
       )) {
         await interaction.followUp({
           content: 'You cannot take action on members with higher permission than this bot',
@@ -312,7 +332,22 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         return;
       }
 
-      if (!action[2].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+      await sendToLogChannel(interaction.client, USER, LOG, action[3]);
+      if (action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+
+      if (!await action[2](
+        member,
+        REASON,
+        DURATION
+      )) {
+        await interaction.followUp({
+          content: 'Something went wrong while trying to punish the user, please make sure you have permission',
+          ephemeral: true
+        });
+        return;
+      }
+
+      if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
 
       if (DELETE_MESSAGE && message?.deletable) message.delete();
     };
@@ -358,9 +393,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setDescription('The rule to apply')
         .addChoices(...await (async () => {
           const RULES: APIApplicationCommandOptionChoice<string>[] = [];
-          (await getRules()).forEach((rule, i) => {
+          (await getRules()).forEach((rule: ruleType, index: number) => {
             if (!rule.active) return;
-            RULES.push({ name: `${rule.index}. ${rule.shortDesc}`, value: JSON.stringify([i]) });
+            RULES.push({ name: `${index + 1}. ${rule.shortDesc}`, value: JSON.stringify([index]) });
 
             // FIXME: extended rules exceed 25 choices limit
             //rule.extended?.forEach((extended, j) => {
@@ -382,6 +417,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         .setName('private-notes')
         .setDescription('Private notes to add')
         .setRequired(false)
-      );
+      )
   }
 }

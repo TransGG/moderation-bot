@@ -58,19 +58,19 @@ export async function getCommands() {
   return await hGetCommands(COMMANDS_DIRECTORY);
 }
 export async function getCoreConf(): Promise<coreType> {
-  return await cleanImport(CONFIGS.CORE);
+  return (await cleanImport(CONFIGS.CORE)).default;
 }
 export async function getCustomisations(): Promise<customisationsType> {
-  return await cleanImport(CONFIGS.CUSTOMISATIONS);
+  return (await cleanImport(CONFIGS.CUSTOMISATIONS)).default;
 }
 export async function getAdvancedConf(): Promise<advancedType> {
-  return await cleanImport(CONFIGS.ADVANCED);
+  return (await cleanImport(CONFIGS.ADVANCED)).default;
 }
 export async function getRules(): Promise<rulesType> {
-  return await cleanImport(CONFIGS.RULES);
+  return (await cleanImport(CONFIGS.RULES)).default;
 }
 export async function getSnowflakeMap(): Promise<snowflakeMapType> {
-  return await cleanImport(CONFIGS.SNOWFLAKE_MAP);
+  return (await cleanImport(CONFIGS.SNOWFLAKE_MAP)).default;
 }
 export function getDirectoryFromFileURL(fileURL: string) {
   return dirname(fileURLToPath(fileURL));
