@@ -18,6 +18,4 @@ export default new ResponsiveContentMenuCommandBuilder()
       ],
       ephemeral: true
     });
-
-    return;
   });

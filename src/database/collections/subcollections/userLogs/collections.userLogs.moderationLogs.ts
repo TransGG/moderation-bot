@@ -43,7 +43,7 @@ export default class ModerationLog {
   public readonly reason: string;
 
   public readonly timeoutDuration?: number;
-  public readonly rule?: number[];
+  public readonly rule?: string[];
   public readonly privateNotes?: string;
   public readonly action: string;
 
@@ -52,7 +52,7 @@ export default class ModerationLog {
     user: User,
     action: string,
     reason: string,
-    rule?: number[],
+    rule?: string[],
     privateNotes?: string,
     timeoutDuration?: number,
     message?: Message

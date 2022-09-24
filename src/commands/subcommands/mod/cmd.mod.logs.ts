@@ -21,5 +21,4 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       ],
       ephemeral: true
     });
-    return;
   });

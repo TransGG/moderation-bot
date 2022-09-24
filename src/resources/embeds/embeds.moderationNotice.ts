@@ -3,7 +3,7 @@ import type COLLECTIONS from '@database/collections.js';
 import { getRules } from '@utils.js';
 
 export default async function moderationNotice(log: InstanceType<typeof COLLECTIONS.ModerationLog>) {
-  // TODO: more centralised actions definition? possibly add them to templates.actionCommand.ts
+  // TODO: more centralized actions definition? possibly add them to templates.actionCommand.ts
   const ACTION = (() => {
     switch (log.action) {
     case 'warn': return 'warned';
@@ -22,9 +22,11 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     .setDescription(`You have been ${ACTION}.`)
     .addField('Reason', log.reason, true);
 
+  const RULES = await getRules();
+
   if (log.rule && log.action !== 'verify') EMBED.addField(
-    `Rule ${log.rule?.map(r => ++r).join('.') ?? ''}`,
-    <string>(await getRules())[<number>log.rule[0]]?.description,
+    `Rule ${log.rule?.map(rule => RULES[rule]?.ruleNumber ?? rule).join('.') ?? ''}`,
+    <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
     true
   );
 
