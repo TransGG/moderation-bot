@@ -38,7 +38,7 @@ export default class UserLog {
     user: User,
     action: string,
     reason: string,
-    rule?: number[],
+    rule?: string[],
     privateNotes?: string,
     timeoutDuration?: number,
     message?: Message

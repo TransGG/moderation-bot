@@ -1,4 +1,5 @@
 export interface ruleType {
+  ruleNumber: number;
   shortDesc: string;
   description: string;
   extended: {
@@ -10,6 +11,6 @@ export interface ruleType {
   active: boolean;
 }
 
-type rulesType = Array<ruleType>
-
-export default rulesType;
+export default interface rulesType {
+  [key: string]: ruleType;
+}

@@ -1,14 +1,16 @@
 import type rules from './rulesType';
 
-const config: rules = [
-  {
+const config: rules = {
+  offtopic: {
+    ruleNumber: 1,
     shortDesc: 'Not on topic',
     description:
       'Keep on-topic in all channels. We understand conversations naturally drift; however, if they do not self-correct after a while, a mod may step in to help do so.',
     extended: [],
     active: true,
   },
-  {
+  nsfw: {
+    ruleNumber: 2,
     shortDesc: 'NSFW/Age-restricted content',
     description:
       'No age-restricted or obscene content. Our community remains appropriate for anyone over the age of 13, any content deemed unfit for this is disallowed. This includes text, images or links.',
@@ -58,21 +60,24 @@ const config: rules = [
     ],
     active: true,
   },
-  {
+  shocking: {
+    ruleNumber: 3,
     shortDesc: 'Shocking / Gory content',
     description:
       'No shocking or overly violent/gory content. If something straddles the line, ask a mod, CW, or don’t post it at all.',
     extended: [],
     active: true,
   },
-  {
+  spam: {
+    ruleNumber: 4,
     shortDesc: 'Spam/Self promotion',
     description:
       'No spam or self-promotion (server invites, advertisements. etc.) without permission from a staff member. This includes DMing fellow members.',
     extended: [],
     active: true,
   },
-  {
+  harassment: {
+    ruleNumber: 5,
     shortDesc: 'Harassment',
     description:
       'Treat everyone with respect. Absolutely no harassment, witch hunting, sexism, racism or hate speech will be tolerated.',
@@ -110,7 +115,8 @@ const config: rules = [
     ],
     active: true,
   },
-  {
+  violence: {
+    ruleNumber: 6,
     shortDesc: 'Violent conflict',
     description:
       'Keep in mind effective conflict resolution and interpersonal skills.',
@@ -154,7 +160,8 @@ const config: rules = [
     ],
     active: false,
   },
-  {
+  hate: {
+    ruleNumber: 7,
     shortDesc: 'Hate',
     description: 'Hate has no home here.',
     extended: [
@@ -190,14 +197,16 @@ const config: rules = [
     ],
     active: true,
   },
-  {
+  nonenglish: {
+    ruleNumber: 8,
     shortDesc: 'Non-English conversations',
     description:
       'Please keep all conversations in English. Short phrases or jokes in another language are allowed, but we cannot effectively moderate non-English extensive discussions.',
     extended: [],
     active: true,
   },
-  {
+  other: {
+    ruleNumber: 9,
     shortDesc: 'Other',
     description:
       'This is a catch-all rule to allow moderators to moderate actions which otherwise wouldn\'t be contained in any rule. Moderators reserve the right to moderate users who are not breaking any stated rules but are otherwise disrupting the safe space. Such actions will be reviewed by other staff, but if you want to appeal a bad moderation decision please also open a ticket',
@@ -205,6 +214,6 @@ const config: rules = [
     active: true,
     extraCategories: ['rule-other'],
   },
-];
+};
 
 export default config;
