@@ -47,8 +47,10 @@ async function formatLogMessage(client: Client, user: User, log: ModerationLog, 
     if (!(e instanceof DiscordAPIError)) throw e;
   }
 
+  const reason = log.reason.length <= 300 ? log.reason : log.reason.slice(0, 300) + '...';
+
   return `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense}* ${log.userState.username}#${log.userState.discriminator} [\`${user.id}\`, <@${user.id}>]\n` +
-         `> ${log.reason}` +
+         `> ${reason}` +
          ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ') }` +
     (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')');
 }
