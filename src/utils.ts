@@ -26,7 +26,7 @@ function getConfigPath(name: string, ext: string) {
   let dev_conf;
   let prod_conf;
   if (ext === '.ts') {
-    dev_conf = path.join(SRC_PATH, `../dist/configs/${name}.dev${ext}`);
+    dev_conf = path.join(SRC_PATH, `../dist/configs/${name}.dev.js`);
     prod_conf = path.join(SRC_PATH, `../dist/configs/${name}.js`);
   } else {
     dev_conf = path.join(SRC_PATH, `../configs/${name}.dev${ext}`);
