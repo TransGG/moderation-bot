@@ -23,7 +23,7 @@ export default async function moderationLogs(user: User, page = 1) {
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
     .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => {
       const rule = RULES[log.rule![0]!]; // FIXME: Breaks with multiple rules
-      const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber}` : `Deleted rule (${log.rule![0]!})`;
+      const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule![0]!})` : `Deleted rule (${log.rule![0]!})`;
 
       return [
         {
