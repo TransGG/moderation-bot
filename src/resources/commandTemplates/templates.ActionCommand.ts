@@ -405,6 +405,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       // Sometimes we won't be able to fetch a member (i.e. if they aren't in the server).
     }
 
+    const action = ActionCommand.actions.find(
+      (action) => action[0].value === ACTION
+    );
+    if (!action) return;
+
     if (!member) {
       if (ACTION === 'ban') {
         try {
@@ -412,7 +417,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             reason: REASON,
             days: DURATION ?? 0,
           });
-          await COLLECTIONS.UserLog.newModLog(
+          const LOG = await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,
             USER,
             ACTION,
@@ -422,6 +427,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             DURATION,
             message
           );
+          await sendToLogChannel(interaction.client, USER, LOG, action[3]);
           await interaction.followUp({
             content: `Banned out-of-server member ${
               typeof bannedUser === 'object'
@@ -454,11 +460,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       });
       return;
     }
-
-    const action = ActionCommand.actions.find(
-      (action) => action[0].value === ACTION
-    );
-    if (!action) return;
 
     const LOG = await COLLECTIONS.UserLog.newModLog(
       interaction.user.id,
