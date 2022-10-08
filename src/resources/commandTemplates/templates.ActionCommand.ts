@@ -102,7 +102,7 @@ async function formatLogMessage(
       user.id
     }\`, <@${user.id}>]` + (
       log.action === 'timeout' ?
-        ` for ${log.timeoutDuration ? formatDuration(log.timeoutDuration) : 'an unknown amount of time'}` : ''
+        ` *for ${log.timeoutDuration ? formatDuration(log.timeoutDuration) : 'an unknown amount of time'}*` : ''
     ) +
       `\n> ${reason}` +
       ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
