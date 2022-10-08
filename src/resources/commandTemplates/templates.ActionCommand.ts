@@ -56,6 +56,28 @@ async function getRuleDescriptions(rules: string[]): Promise<string[]> {
   return RESULT;
 }
 
+const durations = {
+  week: 7 * 24 * 60 * 60 * 1000,
+  day: 24 * 60 * 60 * 1000,
+  hour: 60 * 60 * 1000,
+  minute: 60 * 1000,
+  second: 1000,
+  millisecond: 1
+}
+function formatDuration (ms: number) {
+  const parts = [];
+
+  for (const [name, duration] of Object.entries(durations)) {
+    const count = Math.trunc(ms / duration);
+    if (count > 0) {
+      parts.push(`${count} ${name}${count !== 1 ? 's' : ''}`);
+      ms -= duration * count;
+    }
+  }
+
+  return parts.join(', ');
+}
+
 async function formatLogMessage(
   client: Client,
   user: User,
@@ -78,10 +100,13 @@ async function formatLogMessage(
       extraActionOptions.pastTense
     }* ${log.userState.username}#${log.userState.discriminator} [\`${
       user.id
-    }\`, <@${user.id}>]\n` +
-    `> ${reason}` +
-    ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
-    (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
+    }\`, <@${user.id}>]` + (
+      log.action === 'timeout' ?
+        ` for ${log.timeoutDuration ? formatDuration(log.timeoutDuration) : 'an unknown amount of time'}` : ''
+    ) +
+      `\n> ${reason}` +
+      ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
+      (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
   );
 }
 
