@@ -185,7 +185,7 @@ async function validateDuration(
       return [false, undefined];
     }
 
-  if (!/^(?: *\d+[DHMS] *)+$/i.test(INPUT)) {
+  if (!/^(?: *\d+(\.\d+)?[DHMS] *)+$/i.test(INPUT)) {
     await interaction.followUp({
       content:
         'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[HMS] *)+$/i`',
@@ -196,9 +196,9 @@ async function validateDuration(
 
   let duration = 0;
   if (INPUT)
-    for (const TIME of <RegExpMatchArray>INPUT.match(/\d+[DHMS]/gi)) {
+    for (const TIME of <RegExpMatchArray>INPUT.match(/\d+(\.\d+)?[DHMS]/gi)) {
       const TIME_GROUP = <{ [key in 'amount' | 'unit']: string }>(
-        TIME.match(/(?<amount>\d+)(?<unit>[DHMS])/i)?.groups
+        TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
       case 'D':
