@@ -47,8 +47,7 @@ export default class UserLog {
       { $match: { 'moderationLogs.timestamp': { $gte: Date.now() - timeInMs } } },
     ]).toArray();
 
-    if (ACTIONS.length === 0) return [];
-    else return ACTIONS;
+    return ACTIONS;
   }
 
 
