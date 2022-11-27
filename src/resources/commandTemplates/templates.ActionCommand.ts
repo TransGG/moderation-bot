@@ -17,7 +17,7 @@ import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/co
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
-import { getRules, getSnowflakeMap } from '@utils.js';
+import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
@@ -434,6 +434,23 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       (action) => action[0].value === ACTION
     );
     if (!action) return;
+
+    const CUSTOMISATIONS = await getCustomisations()
+
+    // @ts-expect-error - If action is not valid, default will be used instead.
+    const DAILY_ACTION_LIMITS = CUSTOMISATIONS.Daily_Action_Limits[ACTION] || CUSTOMISATIONS.Daily_Action_Limits['default']
+
+    const activity = await COLLECTIONS.UserLog.checkModeratorActivityInTime(interaction.user.id, ACTION, durations.day);
+    if (activity.length >= DAILY_ACTION_LIMITS) {
+      await interaction.followUp({
+        content:
+          `Failed to perform action on a user: ${USER}. You have performed ${activity.length} ${ACTION} actions in the last 24 hours. (Limit: ${DAILY_ACTION_LIMITS})`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
 
     if (!member) {
       if (ACTION === 'ban') {

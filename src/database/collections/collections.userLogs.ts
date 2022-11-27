@@ -33,6 +33,25 @@ export default class UserLog {
       new UserLog(userID);
   }
 
+  public static async checkModeratorActivityInTime(
+    moderatorID: Snowflake,
+    action: string,
+    timeInMs: number
+  ) {
+    // Find all actions by this moderator in the last 24 hours with this action
+    const ACTIONS = await DATABASE_COLLECTION.aggregate([
+      { $match: { 'moderationLogs.moderator': moderatorID } },
+      { $unwind: '$moderationLogs' },
+      { $match: { 'moderationLogs.moderator': moderatorID } },
+      { $match: { 'moderationLogs.action': action } },
+      { $match: { 'moderationLogs.timestamp': { $gte: Date.now() - timeInMs } } },
+    ]).toArray();
+
+    if (ACTIONS.length === 0) return [];
+    else return ACTIONS;
+  }
+
+
   public static async newModLog(
     moderatorID: Snowflake,
     user: User,
