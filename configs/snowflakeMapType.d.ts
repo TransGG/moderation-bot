@@ -11,6 +11,11 @@ export default interface snowflakeMap {
   Staff_Roles: string[];
 
   /**
+   * Stops staff from punishing other staff
+   */
+  Sr_Staff_Roles: string[];
+
+  /**
    * Roles that will be pinged when a message is reported
    */
   Report_Notification_Roles: string[];
@@ -25,6 +30,11 @@ export default interface snowflakeMap {
    * Channels that reports will be sent to
    */
   Reports_Channels: string[];
+
+  /**
+   * Channel to notify sr staff in when daily limits are reached
+   */
+   Sr_Notify_Channel: string;
 
   /**
    * Channels that different types of moderation logs will be sent to. Keys are

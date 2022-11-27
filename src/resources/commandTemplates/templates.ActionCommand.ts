@@ -17,7 +17,7 @@ import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/co
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
-import { getRules, getSnowflakeMap } from '@utils.js';
+import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
 function getBasicOptions(interaction: CommandInteraction) {
@@ -108,6 +108,33 @@ async function formatLogMessage(
       ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
       (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
   );
+}
+
+async function sendToSrNotifyChannel(
+  client: Client,
+  message: string
+): Promise<void> {
+  const SNOWFLAKE_MAP = await getSnowflakeMap();
+  const LOG_CHANNEL = await client.channels.fetch(SNOWFLAKE_MAP.Sr_Notify_Channel);
+
+  if (
+    !LOG_CHANNEL ||
+    (LOG_CHANNEL.type !== 'GUILD_TEXT' &&
+      LOG_CHANNEL.type !== 'GUILD_NEWS' &&
+      LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' &&
+      LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' &&
+      LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' &&
+      LOG_CHANNEL.type !== 'DM')
+  ) return;
+
+  try {
+    await LOG_CHANNEL.send({
+      content: message,
+      allowedMentions: { parse: [] },
+    });
+  } catch {
+    // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
+  }
 }
 
 async function sendToLogChannel(
@@ -434,6 +461,26 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       (action) => action[0].value === ACTION
     );
     if (!action) return;
+
+    const CUSTOMISATIONS = await getCustomisations()
+
+    // @ts-expect-error - If action is not valid, default will be used instead.
+    const DAILY_ACTION_LIMITS = CUSTOMISATIONS.Daily_Action_Limits[ACTION] || CUSTOMISATIONS.Daily_Action_Limits['default']
+
+    const activity = await COLLECTIONS.UserLog.checkModeratorActivityInTime(interaction.user.id, ACTION, durations.day);
+    if (activity.length >= DAILY_ACTION_LIMITS) {
+      await interaction.followUp({
+        content:
+          `Failed to perform action on a user: ${USER}. You have performed ${activity.length} ${ACTION} actions in the last 24 hours. (Limit: ${DAILY_ACTION_LIMITS})`,
+        ephemeral: true,
+      });
+
+      await sendToSrNotifyChannel(interaction.client, `Moderator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} ${ACTION} actions in the last 24 hours.`)
+
+      return;
+    }
+
+    // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
 
     if (!member) {
       if (ACTION === 'ban') {
