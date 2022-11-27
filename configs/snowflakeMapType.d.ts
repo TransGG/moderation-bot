@@ -11,7 +11,7 @@ export default interface snowflakeMap {
   Staff_Roles: string[];
 
   /**
-   * Stops staff from punishing other staff
+   * Staff roles to notify when daily limits are reached
    */
   Sr_Staff_Roles: string[];
 
