@@ -110,6 +110,33 @@ async function formatLogMessage(
   );
 }
 
+async function sendToSrNotifyChannel(
+  client: Client,
+  message: string
+): Promise<void> {
+  const SNOWFLAKE_MAP = await getSnowflakeMap();
+  const LOG_CHANNEL = await client.channels.fetch(SNOWFLAKE_MAP.Sr_Notify_Channel);
+
+  if (
+    !LOG_CHANNEL ||
+    (LOG_CHANNEL.type !== 'GUILD_TEXT' &&
+      LOG_CHANNEL.type !== 'GUILD_NEWS' &&
+      LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' &&
+      LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' &&
+      LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' &&
+      LOG_CHANNEL.type !== 'DM')
+  ) return;
+
+  try {
+    await LOG_CHANNEL.send({
+      content: message,
+      allowedMentions: { parse: [] },
+    });
+  } catch {
+    // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
+  }
+}
+
 async function sendToLogChannel(
   client: Client,
   user: User,
@@ -447,6 +474,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           `Failed to perform action on a user: ${USER}. You have performed ${activity.length} ${ACTION} actions in the last 24 hours. (Limit: ${DAILY_ACTION_LIMITS})`,
         ephemeral: true,
       });
+
+      await sendToSrNotifyChannel(interaction.client, `Moderator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} ${ACTION} actions in the last 24 hours.`)
+
       return;
     }
 
