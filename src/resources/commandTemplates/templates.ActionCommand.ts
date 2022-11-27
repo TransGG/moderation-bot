@@ -130,7 +130,7 @@ async function sendToSrNotifyChannel(
   try {
     await LOG_CHANNEL.send({
       content: message,
-      allowedMentions: { parse: [] },
+      allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
     });
   } catch {
     // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
