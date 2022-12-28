@@ -93,7 +93,7 @@ async function formatLogMessage(
   }
 
   const reason =
-    log.reason.length <= 300 ? log.reason : log.reason.slice(0, 300) + '...';
+    log.reason.length <= 1000 ? log.reason : log.reason.slice(0, 1000) + '...';
 
   return (
     `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${
@@ -106,7 +106,7 @@ async function formatLogMessage(
     ) +
       `\n> ${reason}` +
       ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
-      (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
+      (log.privateNotes ? `, Private notes: *${log.privateNotes.length <= 750 ? log.reason : log.reason.slice(0, 750) + '...'}*)` : ')')
   );
 }
 
