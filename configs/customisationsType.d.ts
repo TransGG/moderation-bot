@@ -6,6 +6,8 @@ export default interface customisations {
     timeout: number,
     kick: number,
     ban: number,
+    add_mature: number,
+    remove_mature: number,
     default: number
   }
 }
