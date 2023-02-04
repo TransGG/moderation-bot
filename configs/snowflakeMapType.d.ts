@@ -52,7 +52,7 @@ export default interface snowflakeMap {
   Verified_Roles: string[];
 
   /**
-   * A list of roles that members verified with /mod user Add Mature / Remove Mature should be Given / Removed
+   * A list of roles that members can receive and be removed with /mod user Add Mature / Remove Mature
    */
   Mature_Roles: string[];
 }
