@@ -424,7 +424,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'added to the mature role' },
+        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to' },
       ],
       [
         {
@@ -439,7 +439,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'removed from the mature role' },
+        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from' },
       ],
     ];
 
