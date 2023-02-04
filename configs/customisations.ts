@@ -8,6 +8,8 @@ const config: customisations = {
     timeout: 30,
     kick: 30,
     ban: 30,
+    add_mature: 30,
+    remove_mature: 30,
     default: 30
   }
 };
