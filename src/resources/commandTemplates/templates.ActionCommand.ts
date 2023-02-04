@@ -325,7 +325,19 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       (member: GuildMember) => Promise<boolean>,
       (member: GuildMember, reason: string, days?: number) => Promise<boolean>,
       ExtraActionOptions
-    ]
+    ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
   ] = [
       [
         {
@@ -398,6 +410,36 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return !!(await member.ban({ reason, days }));
         },
         { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned' },
+      ],
+      [
+        {
+          name: 'Add Mature',
+          value: 'add_mature',
+        },
+        async (member) => {
+          return member.manageable;
+        },
+        async (member, reason) => {
+          if (!member.manageable) return false;
+          const SNOWFLAKE_MAP = await getSnowflakeMap();
+          return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
+        },
+        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to' },
+      ],
+      [
+        {
+          name: 'Remove Mature',
+          value: 'remove_mature',
+        },
+        async (member) => {
+          return member.manageable;
+        },
+        async (member, reason) => {
+          if (!member.manageable) return false;
+          const SNOWFLAKE_MAP = await getSnowflakeMap();
+          return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
+        },
+        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from' },
       ],
     ];
 

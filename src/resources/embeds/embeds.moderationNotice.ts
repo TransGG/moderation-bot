@@ -12,6 +12,8 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     case 'kick': return 'kicked';
     case 'ban': return 'banned';
     case 'verify': return 'verified';
+    case 'add_mature': return 'given the mature role';
+    case 'remove_mature': return 'removed from the mature role';
     default: return 'warned';
     }
   })();
@@ -24,7 +26,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
 
   const RULES = await getRules();
 
-  if (log.rule && log.action !== 'verify') EMBED.addField(
+  if (log.rule && (log.action !== 'verify' && log.action !== 'add_mature')) EMBED.addField(
     `Rule ${log.rule?.map(rule => RULES[rule]?.ruleNumber ?? rule).join('.') ?? ''}`,
     <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
     true
