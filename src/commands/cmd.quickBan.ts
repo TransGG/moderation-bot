@@ -1,17 +1,16 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
 import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
-import MODALS from '@resources/modals.js';
-import { CommandInteraction, ContextMenuInteraction, GuildMemberRoleManager } from 'discord.js';
+import { GuildMemberRoleManager, GuildMember } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
-import COLLECTIONS from '@database/collections.js';
+import ModMessage from './subcommands/mod/cmd.mod.message.js';
 
 export default new ResponsiveContentMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Quick Ban User')
   .setResponse(async (interaction, interactionHandler, _command) => {
 
-    if (!interaction.isContextMenu()) return;
+    if (!interaction.isMessageContextMenu()) return;
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const QUICK_BAN_ALLOWED =
@@ -32,52 +31,32 @@ export default new ResponsiveContentMenuCommandBuilder()
       return;
     }
 
+    const GUILD_MEMBER_ID = interaction.targetMessage.author.id;
+    const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : interaction.guild?.members.cache.get(GUILD_MEMBER_ID);
 
-    // const TARGET = interaction.targetMessage.author
+    if (!GUILD_MEMBER) {
+      return await interaction.reply({
+        content: 'Failed to find the member to be banned, please check that the member is still in the server and use the normal ban command instead',
+        ephemeral: true
+      });
+    }
 
-    // if (!TARGET.bannable) return await interaction.reply({
-    //         content: 'This user is not bannable, if you believe this is a mistake please DM a Sr. Staff member about this',
-    //         ephemeral: true
-    //     });
+    const JOINED_AT = GUILD_MEMBER.joinedAt;
 
-    // const REASON = 'No reason provided. Banned Via QuickBan';
-    // const DURATION = 7
-    // const ACTION = 'ban';
-    // const RULE = ['other'];
+    if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
+      return await interaction.reply({
+        content: 'This member joined the server too long ago to be quick banned, please use the normal ban command instead',
+      })
+    }
 
-    // try {
-    //     const bannedUser = await TARGET.ban({
-    //       reason: REASON,
-    //       days: DURATION,
-    //     });
-
-    //     const LOG = await COLLECTIONS.UserLog.newModLog(
-    //       interaction.user.id,
-    //       TARGET,
-    //       ACTION,
-    //       REASON,
-    //       RULE,
-    //       undefined,
-    //       DURATION,
-    //       interaction.targetMessage
-    //     );
-    //     await sendToLogChannel(interaction.client, TARGET, LOG, action[3]);
-    //     await interaction.followUp({
-    //       content: `Banned out-of-server member ${
-    //         typeof bannedUser === 'object'
-    //           ? `${(bannedUser as User).tag} (${bannedUser.id})`
-    //           : bannedUser
-    //       }`,
-    //     });
-    //     return;
-    //   } catch (e) {
-    //     console.log(`Failed to ban a user: ${e}`);
-    //     await interaction.followUp({
-    //       content:
-    //         'I couldn\'t ban that user, check that you provided the right ID',
-    //       ephemeral: true,
-    //     });
-    //     return;
-    //   }
-
+    ModMessage.response(interaction, interactionHandler, ModMessage, {
+      user: GUILD_MEMBER.user,
+      'message-id': interaction.targetMessage.id,
+      'delete-message': true,
+      'action': 'ban',
+      reason: 'Banned for breaking the rules in under 7 days of joining',
+      rule: ['other'],
+      duration: '7d',
+      'private-notes': 'Quick Banned Member | No Private Notes Provided'
+    });
   });
