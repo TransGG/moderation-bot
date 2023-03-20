@@ -1,6 +1,7 @@
 import {
   Client,
   CommandInteraction,
+  ContextMenuInteraction,
   DiscordAPIError,
   GuildMember,
   Interaction,
@@ -20,14 +21,15 @@ import EMBEDS from '../embeds.js';
 import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
-function getBasicOptions(interaction: CommandInteraction) {
-  const DELETE_MESSAGE =
-    interaction.options.getBoolean('delete-message', false) ?? undefined;
-  const ACTION = interaction.options.getString('action', true);
-  const REASON = interaction.options.getString('reason', true);
-  const PRIVATE_NOTES = interaction.options.getString('private-notes', false);
+function getBasicOptions(interaction: Interaction, options: Partial<OverrideActionOptions>) {
+  const DELETE_MESSAGE = options['delete-message'] ?? (interaction.isCommand() ? interaction.options.getBoolean('delete-message', false) : undefined) ?? undefined;
+  const ACTION = options['action'] ?? (interaction.isCommand() ? interaction.options.getString('action', true) : null);
+  if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
+  const REASON = options['reason'] ?? (interaction.isCommand() ? interaction.options.getString('reason', true) : null);
+  if (REASON === null) throw new Error('REASON must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
+  const PRIVATE_NOTES = options['private-notes'] ?? (interaction.isCommand() ? interaction.options.getString('private-notes', false) : undefined);
   const RULE =
-    (JSON.parse(interaction.options.getString('rule', false) ?? 'null') as
+    (options['rule'] ?? JSON.parse((interaction.isCommand() ? interaction.options.getString('rule', false) : null) ?? 'null') as
       | string[]
       | null) ?? undefined;
 
@@ -194,15 +196,17 @@ async function sendToLogChannel(
 }
 
 async function validateDuration(
-  interaction: CommandInteraction
+  interaction: CommandInteraction | ContextMenuInteraction,
+  options: Partial<OverrideActionOptions>,
 ): Promise<[boolean, number | undefined]> {
   // duration must be specific only if the action is a timeout
-  const ACTION = interaction.options.getString('action', true);
+  const ACTION = options['action'] ?? (interaction.isCommand() ? interaction.options.getString('action', true) : null);
+  if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
   if (ACTION !== 'timeout' && ACTION !== 'ban') return [true, undefined];
 
-  const INPUT = interaction.options.getString('duration', false) ?? undefined;
+  const INPUT = options['duration'] ?? (interaction.isCommand() ? interaction.options.getString('duration', false) : null);
   if (!INPUT)
-    if (interaction.options.getString('action', true) === 'ban')
+    if (ACTION === 'ban')
       return [true, 0];
     else {
       await interaction.followUp({
@@ -215,7 +219,7 @@ async function validateDuration(
   if (!/^(?: *\d+(\.\d+)?[DHMS] *)+$/i.test(INPUT)) {
     await interaction.followUp({
       content:
-        'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[HMS] *)+$/i`',
+        'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[DHMS] *)+$/i`',
       ephemeral: true,
     });
     return [false, undefined];
@@ -261,7 +265,7 @@ async function validateDuration(
 async function sendNotice(
   USER: User,
   LOG: ModerationLog,
-  interaction: CommandInteraction
+  interaction: CommandInteraction | ContextMenuInteraction,
 ) {
   try {
     await (
@@ -286,6 +290,17 @@ export interface ExtraActionOptions {
   sendNoticeFirst?: boolean;
   emoji: string;
   pastTense: string;
+}
+
+export interface OverrideActionOptions {
+  user: User;
+  'message-id': string;
+  'delete-message': boolean;
+  'action': string;
+  reason: string;
+  rule: string[];
+  duration: string;
+  'private-notes': string;
 }
 
 export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuilder {
@@ -455,9 +470,13 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
   override readonly response = async (
     interaction: Interaction,
     _interactionHandler: InteractionHandler,
-    command: this
+    command: this,
+    options?: Partial<OverrideActionOptions>
   ): Promise<void> => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand() && !interaction.isContextMenu())
+      throw new Error('An invalid interaction type was passed into the ActionCommand response method');
+
+    if (options === undefined) options = {};
     await interaction.deferReply({ ephemeral: true });
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
@@ -465,16 +484,18 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
     // get basic options
     const { DELETE_MESSAGE, ACTION, REASON, PRIVATE_NOTES, RULE } =
-      getBasicOptions(interaction);
+      getBasicOptions(interaction, options);
 
-    const [IS_VALID_DURATION, DURATION] = await validateDuration(interaction);
+    const [IS_VALID_DURATION, DURATION] = await validateDuration(interaction, options);
     if (!IS_VALID_DURATION) return;
 
     let message: Message | undefined;
     if (command.type === 'message') {
       try {
+        const messageId = options['message-id'] ?? (interaction.isCommand() ? interaction.options.getString('message-id', true) : null);
+        if (messageId === null) throw new Error('For message ActionCommands, message-id must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
         message = await interaction.channel?.messages.fetch(
-          interaction.options.getString('message-id', true)
+          messageId
         );
       } catch {
         // If the message isn't in the same channel we won't be able to fetch it
@@ -490,8 +511,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     const USER = message
       ? message.author
-      : interaction.options.getUser('user', true);
-
+      : options['user'] ?? (interaction.isCommand() ? interaction.options.getUser('user', true) : null);
+    if (USER === null) throw new Error('USER must be defined either by using a CommandInteraction, an OverrideActionOptions with it set or a message ActionCommand where it can be inferred from the message author');
     let member: GuildMember | undefined;
     try {
       member = await interaction.guild?.members.fetch(USER.id);
@@ -502,7 +523,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     const action = ActionCommand.actions.find(
       (action) => action[0].value === ACTION
     );
-    if (!action) return;
+
+    if (!action) {
+      console.log(`Action ${ACTION} not found, ignoring...`);
+      return;
+    }
 
     const CUSTOMISATIONS = await getCustomisations()
 
@@ -523,6 +548,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
     // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
+
+    if (DELETE_MESSAGE && message?.deletable) message.delete();
 
     if (!member) {
       if (ACTION === 'ban') {
@@ -609,7 +636,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
 
-    if (DELETE_MESSAGE && message?.deletable) message.delete();
   };
 
   private addUserParameters() {
