@@ -219,7 +219,7 @@ async function validateDuration(
   if (!/^(?: *\d+(\.\d+)?[DHMS] *)+$/i.test(INPUT)) {
     await interaction.followUp({
       content:
-        'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[HMS] *)+$/i`',
+        'Invalid duration format, example: `1h 30m 10s`\nMatch the regex: `/^(?: *\\d+[DHMS] *)+$/i`',
       ephemeral: true,
     });
     return [false, undefined];
@@ -505,8 +505,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           content: 'Message not found',
           ephemeral: true,
         });
+        return;
       }
-      return;
     }
 
     const USER = message
@@ -523,7 +523,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     const action = ActionCommand.actions.find(
       (action) => action[0].value === ACTION
     );
-    if (!action) return;
+
+    if (!action) {
+      console.log(`Action ${ACTION} not found, ignoring...`);
+      return;
+    }
 
     const CUSTOMISATIONS = await getCustomisations()
 
@@ -544,6 +548,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
     // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
+
+    if (DELETE_MESSAGE && message?.deletable) message.delete();
 
     if (!member) {
       if (ACTION === 'ban') {
@@ -630,7 +636,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
 
-    if (DELETE_MESSAGE && message?.deletable) message.delete();
   };
 
   private addUserParameters() {

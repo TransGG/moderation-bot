@@ -32,7 +32,8 @@ export default new ResponsiveContentMenuCommandBuilder()
     }
 
     const GUILD_MEMBER_ID = interaction.targetMessage.author.id;
-    const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : interaction.guild?.members.cache.get(GUILD_MEMBER_ID);
+
+    const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
 
     if (!GUILD_MEMBER) {
       return await interaction.reply({
@@ -46,6 +47,7 @@ export default new ResponsiveContentMenuCommandBuilder()
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
       return await interaction.reply({
         content: 'This member joined the server too long ago to be quick banned, please use the normal ban command instead',
+        ephemeral: true
       })
     }
 
