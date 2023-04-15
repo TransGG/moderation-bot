@@ -8,7 +8,7 @@ import ModMessage from './subcommands/mod/cmd.mod.message.js';
 export default new ResponsiveContentMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Quick Ban User')
-  .setResponse(async (interaction, interactionHandler, _command) => {
+  .setResponse(async (interaction, _interactionHandler, _command) => {
 
     if (!interaction.isMessageContextMenu()) return;
 
@@ -51,7 +51,7 @@ export default new ResponsiveContentMenuCommandBuilder()
       })
     }
 
-    ModMessage.response(interaction, interactionHandler, ModMessage, {
+    ModMessage.response(interaction, _interactionHandler, ModMessage, {
       user: GUILD_MEMBER.user,
       'message-id': interaction.targetMessage.id,
       'delete-message': true,
