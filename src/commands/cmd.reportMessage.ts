@@ -8,9 +8,9 @@ import { getSnowflakeMap } from '@utils.js';
 export default new ResponsiveContentMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Report Message')
-  .setResponse(async (interaction, interactionHandler, _command) => {
+  .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isMessageContextMenu()) return;
-    interactionHandler.addComponent(MODALS.report);
+    _interactionHandler.addComponent(MODALS.report);
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const REPORT_ALLOWED =

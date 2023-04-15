@@ -10,10 +10,10 @@ import { Respondable, Responsive } from './responsiveMixins.js';
 import type InteractionHandler from './interactionHandler.js';
 
 export class ResponsiveContentMenuCommandBuilder
-  extends Responsive(ContextMenuCommandBuilder) { }
+  extends Responsive<new () => ContextMenuCommandBuilder>(ContextMenuCommandBuilder) { }
 
 export class ResponsiveSlashCommandSubcommandBuilder
-  extends Responsive(SlashCommandSubcommandBuilder) { }
+  extends Responsive<new () => SlashCommandSubcommandBuilder>(SlashCommandSubcommandBuilder) { }
 
 export class ResponsiveSlashCommandSubcommandGroupBuilder
   extends Respondable(SlashCommandSubcommandGroupBuilder) {
@@ -28,7 +28,7 @@ export class ResponsiveSlashCommandSubcommandGroupBuilder
 }
 
 export class ResponsiveSlashCommandBuilder
-  extends Responsive(SlashCommandBuilder) {
+  extends Responsive<new () => SlashCommandBuilder>(SlashCommandBuilder) {
   public override async respond(interaction: Interaction, interactionHandler: InteractionHandler) {
     if (interaction.isCommand()) {
       // if there are no subcommands, call the response of the command and return
