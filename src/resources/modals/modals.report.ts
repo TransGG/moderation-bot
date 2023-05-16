@@ -1,8 +1,9 @@
-import { Guild, Message, MessageActionRow, TextInputComponent } from 'discord.js';
+import { CategoryChannel, Guild, Message, MessageActionRow, TextInputComponent } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
+import InteractionHandler from '@interactionHandling/interactionHandler.js';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
@@ -16,7 +17,7 @@ export default new ResponsiveModal()
       .setRequired(true)
     )
   )
-  .setResponse(async (interaction, interactionHandler, _command) => {
+  .setResponse(async (interaction, interactionHandler: InteractionHandler, _command) => {
     if (!interaction.isModalSubmit()) return;
     await interaction.deferReply({ ephemeral: true });
 
@@ -32,10 +33,11 @@ export default new ResponsiveModal()
       await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
         const CHANNEL = await interactionHandler.client.channels.fetch(id);
         if (!CHANNEL?.isText()) return;
-        await CHANNEL.send({
+        const reportLog = await CHANNEL.send({
           content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
           embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE, GUILD)]
         });
+        await reportLog.react('✅');
       }));
 
       await interaction.followUp({
