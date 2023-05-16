@@ -44,7 +44,7 @@ export default new ResponsiveModal()
       });
     } catch (e) {
       await interaction.followUp({
-        content: 'Failed reporting message, please DM a staff member about this',
+        content: 'Failed reporting message, please create a ticket in #contact-staff about this',
         ephemeral: true
       });
       throw e;

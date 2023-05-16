@@ -27,8 +27,8 @@ export default new ResponsiveContentMenuCommandBuilder()
     if (!REPORT_ALLOWED) {
       await interaction.reply({
         content: REPORT_ALLOWED === false ?
-          'You are not allowed to report messages, please DM a staff member for more info' :
-          'Failed to process command, please DM a staff member about this',
+          'You are not allowed to report messages, please create a ticket in #contact-staff for more info' :
+          'Failed to process command, please create a ticket in #contact-staff about this',
         ephemeral: true
       });
       return;
