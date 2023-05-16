@@ -1,9 +1,9 @@
-import { CategoryChannel, Guild, Message, MessageActionRow, TextInputComponent } from 'discord.js';
+import { Guild, Message, MessageActionRow, TextInputComponent } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
-import InteractionHandler from '@interactionHandling/interactionHandler.js';
+import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
