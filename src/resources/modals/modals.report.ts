@@ -37,7 +37,7 @@ export default new ResponsiveModal()
           content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
           embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE, GUILD)]
         });
-        await reportLog.react('✅');
+        await reportLog.react('👍');
       }));
 
       await interaction.followUp({
