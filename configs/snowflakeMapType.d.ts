@@ -55,4 +55,9 @@ export default interface snowflakeMap {
    * A list of roles that members can receive and be removed with /mod user Add Mature / Remove Mature
    */
   Mature_Roles: string[];
+
+  /**
+   * A channel used in user-facing error messages to get support at
+   */
+  Support_Channel: string;
 }

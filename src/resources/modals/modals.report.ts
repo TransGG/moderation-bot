@@ -46,7 +46,7 @@ export default new ResponsiveModal()
       });
     } catch (e) {
       await interaction.followUp({
-        content: 'Failed reporting message, please create a ticket in #contact-staff about this',
+        content: `Failed reporting message, please create a ticket in <#${SNOWFLAKE_MAP.Support_Channel}> about this`,
         ephemeral: true
       });
       throw e;
