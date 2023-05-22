@@ -3,14 +3,14 @@ import { ApplicationCommandType } from 'discord-api-types/v10';
 import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { GuildMemberRoleManager, GuildMember } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
-import ModMessage from './subcommands/mod/cmd.mod.message.js';
+import ModUser from './subcommands/mod/cmd.mod.user.js';
 
 export default new ResponsiveContentMenuCommandBuilder()
-  .setType(ApplicationCommandType.Message)
+  .setType(ApplicationCommandType.User)
   .setName('Quick Ban User')
   .setResponse(async (interaction, _interactionHandler, _command) => {
 
-    if (!interaction.isMessageContextMenu()) return;
+    if (!interaction.isUserContextMenu()) return;
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const QUICK_BAN_ALLOWED =
@@ -31,9 +31,9 @@ export default new ResponsiveContentMenuCommandBuilder()
       return;
     }
 
-    const GUILD_MEMBER_ID = interaction.targetMessage.author.id;
+    const GUILD_MEMBER_ID = interaction.targetUser.id;
 
-    const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
+    const GUILD_MEMBER = interaction.targetMember instanceof GuildMember ? interaction.targetMember : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
 
     if (!GUILD_MEMBER) {
       return await interaction.reply({
@@ -43,6 +43,7 @@ export default new ResponsiveContentMenuCommandBuilder()
     }
 
     const JOINED_AT = GUILD_MEMBER.joinedAt;
+    console.log(JOINED_AT);
 
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
       return await interaction.reply({
@@ -51,10 +52,8 @@ export default new ResponsiveContentMenuCommandBuilder()
       })
     }
 
-    ModMessage.response(interaction, _interactionHandler, ModMessage, {
+    ModUser.response(interaction, _interactionHandler, ModUser, {
       user: GUILD_MEMBER.user,
-      'message-id': interaction.targetMessage.id,
-      'delete-message': true,
       'action': 'ban',
       reason: 'Banned for breaking the rules in under 7 days of joining',
       rule: ['other'],
