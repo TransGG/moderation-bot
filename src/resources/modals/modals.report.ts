@@ -3,6 +3,7 @@ import COLLECTIONS from '@database/collections.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
+import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
@@ -16,7 +17,7 @@ export default new ResponsiveModal()
       .setRequired(true)
     )
   )
-  .setResponse(async (interaction, interactionHandler, _command) => {
+  .setResponse(async (interaction, interactionHandler: InteractionHandler, _command) => {
     if (!interaction.isModalSubmit()) return;
     await interaction.deferReply({ ephemeral: true });
 
@@ -32,10 +33,11 @@ export default new ResponsiveModal()
       await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
         const CHANNEL = await interactionHandler.client.channels.fetch(id);
         if (!CHANNEL?.isText()) return;
-        await CHANNEL.send({
+        const reportLog = await CHANNEL.send({
           content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
           embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE, GUILD)]
         });
+        await reportLog.react('👍');
       }));
 
       await interaction.followUp({
@@ -44,7 +46,7 @@ export default new ResponsiveModal()
       });
     } catch (e) {
       await interaction.followUp({
-        content: 'Failed reporting message, please DM a staff member about this',
+        content: `Failed reporting message, please create a ticket in <#${SNOWFLAKE_MAP.Support_Channel}> about this`,
         ephemeral: true
       });
       throw e;
