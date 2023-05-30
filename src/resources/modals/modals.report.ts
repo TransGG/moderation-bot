@@ -4,6 +4,7 @@ import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
+import { ChannelType } from 'discord-api-types/v10';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
@@ -67,6 +68,10 @@ export default new ResponsiveModal()
           await reportLog.react('👍');
         }));
 
+        if (interaction.channel?.type == ChannelType.GuildVoice.toString()) {
+          await interaction.user.send('Thank you for reporting this user. The staff will take action shortly');
+        }
+
         await interaction.followUp({
           content: 'User Reported',
           ephemeral: true
@@ -79,6 +84,11 @@ export default new ResponsiveModal()
         content: `Failed reporting, please create a ticket in <#${SNOWFLAKE_MAP.Support_Channel}> about this`,
         ephemeral: true
       });
+
+      // If the report message is too long, it will fail checking if it's a VC channel for some reason
+      await interaction.user.send(
+        `Failed reporting, please create a ticket in <#${SNOWFLAKE_MAP.Support_Channel}> about this`);
+
       throw e;
     }
   });
