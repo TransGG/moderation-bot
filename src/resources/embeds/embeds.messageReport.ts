@@ -27,30 +27,36 @@ export default async function messageReport(reporter: User, reason: string, mess
   const EMBED = new MessageEmbed()
     .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
     .setDescription(`> ${reporter}`)
-    .addField('Reason', reason, true)
-    .addField('This user has been reported', await reportsCountSummary(message.author.id), true)
-    .addField('\u200b', '\u200b')
-    .addField(
-      'Message Link',
-      `[Jump to message](https://discord.com/channels/${guild.id}/${message.channel.id}/${message.id})`,
-      true
-    )
-    .addField('Message Channel', message.channel.toString(), true)
-    .addField('Reported User', message.author.toString(), true)
-    .addField('\u200b', '\u200b')
+    .addFields([
+      {name: 'Reason', value: reason, inline: true},
+      {name: 'This user has been reported', value: await reportsCountSummary(message.author.id), inline: true},
+      {name: '\u200b', value: '\u200b'},
+      {
+        name:'Message Link',
+        value: `[Jump to message](https://discord.com/channels/${guild.id}/${message.channel.id}/${message.id})`,
+        inline: true
+      },
+      {name: 'Message Channel', value: message.channel.toString(), inline: true},
+      {name: 'Reported User', value: message.author.toString(), inline: true},
+      {name: '\u200b', value: '\u200b'},
+    ])
     .setTimestamp();
 
-  if (message.content) EMBED.addField(
-    'Reported Message Content',
-    message.content,
-    false
-  );
+  if (message.content) EMBED.addFields([
+    {
+      name:'Reported Message Content',
+      value:message.content,
+      inline: false
+    }
+  ]);
 
-  if (message.attachments.size) EMBED.addField(
-    'Reported Message Attachments',
-    message.attachments.map(a => a.url).join('\n'),
-    false
-  );
+  if (message.attachments.size) EMBED.addFields([
+    {
+      name: 'Reported Message Attachments',
+      value: message.attachments.map(a => a.url).join('\n'),
+      inline: false
+    }
+  ]);
 
   return EMBED;
 }

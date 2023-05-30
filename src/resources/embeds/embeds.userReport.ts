@@ -27,11 +27,13 @@ export default async function messageReport(reporter: User, reason: string, user
   const EMBED = new MessageEmbed()
     .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
     .setDescription(`> ${reporter}`)
-    .addField('Reason', reason, true)
-    .addField('This user has been reported', await reportsCountSummary(user.id), true)
-    .addField('\u200b', '\u200b')
-    .addField('Reported User', user.toString(), true)
-    .addField('\u200b', '\u200b')
+    .addFields([
+      {name: 'Reason', value: reason, inline: true},
+      {name: 'This user has been reported', value: await reportsCountSummary(user.id), inline: true},
+      {name: '\u200b', value: '\u200b'},
+      {name: 'Reported User', value: user.toString(), inline: true},
+      {name: '\u200b', value: '\u200b'},
+    ])
     .setTimestamp();
 
   if (voice.channel) {
