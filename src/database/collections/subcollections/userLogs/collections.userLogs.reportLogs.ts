@@ -39,17 +39,19 @@ export default class ReportLog {
   public readonly reason: string;
   public readonly reporter: ReturnType<typeof getUserState>;
   public readonly reportedUser: ReturnType<typeof getUserState>;
-  public readonly messageInfo: ReturnType<typeof getMessageInfo>;
+  public readonly messageInfo?: ReturnType<typeof getMessageInfo>;
 
   public constructor(
     reason: string,
     reporter: User,
     reportedUser: User,
-    message: Message
+    message: Message | undefined
   ) {
     this.reason = reason;
     this.reporter = getUserState(reporter);
     this.reportedUser = getUserState(reportedUser);
-    this.messageInfo = getMessageInfo(message);
+    if (message) {
+      this.messageInfo = getMessageInfo(message);
+    }
   }
 }
