@@ -2,11 +2,13 @@ import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 import messageReport from './embeds/embeds.messageReport.js';
+import userReport from './embeds/embeds.userReport.js';
 import moderationLogs from './embeds/embeds.moderationLogs.js';
 import moderationNotice from './embeds/embeds.moderationNotice.js';
 
 const EMBEDS = {
   messageReport,
+  userReport,
   moderationLogs,
   moderationNotice
 };

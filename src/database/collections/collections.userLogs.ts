@@ -81,7 +81,7 @@ export default class UserLog {
     reason: string,
     reporter: User,
     reportedUser: User,
-    message: Message
+    message?: Message
   ) {
     const REPORT_LOG = new ReportLog(reason, reporter, reportedUser, message);
     const USER_LOG = await UserLog.getUserLog(reportedUser.id);

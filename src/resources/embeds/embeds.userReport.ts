@@ -1,4 +1,4 @@
-import { Guild, Message, MessageEmbed, Snowflake, User } from 'discord.js';
+import { MessageEmbed, Snowflake, User, VoiceState } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 
 function pushReportsCount(array: string[], length: number, prevTimeLength: number, time: string) {
@@ -23,40 +23,24 @@ async function reportsCountSummary(userID: Snowflake) {
   return LINES.join('\n');
 }
 
-export default async function messageReport(reporter: User, reason: string, message: Message, guild: Guild) {
+export default async function messageReport(reporter: User, reason: string, user: User, voice: VoiceState) {
   const EMBED = new MessageEmbed()
     .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
     .setDescription(`> ${reporter}`)
     .addFields([
       {name: 'Reason', value: reason, inline: true},
-      {name: 'This user has been reported', value: await reportsCountSummary(message.author.id), inline: true},
+      {name: 'This user has been reported', value: await reportsCountSummary(user.id), inline: true},
       {name: '\u200b', value: '\u200b'},
-      {
-        name:'Message Link',
-        value: `[Jump to message](https://discord.com/channels/${guild.id}/${message.channel.id}/${message.id})`,
-        inline: true
-      },
-      {name: 'Message Channel', value: message.channel.toString(), inline: true},
-      {name: 'Reported User', value: message.author.toString(), inline: true},
+      {name: 'Reported User', value: user.toString(), inline: true},
       {name: '\u200b', value: '\u200b'},
     ])
     .setTimestamp();
 
-  if (message.content) EMBED.addFields([
-    {
-      name:'Reported Message Content',
-      value:message.content,
-      inline: false
-    }
-  ]);
-
-  if (message.attachments.size) EMBED.addFields([
-    {
-      name: 'Reported Message Attachments',
-      value: message.attachments.map(a => a.url).join('\n'),
-      inline: false
-    }
-  ]);
+  if (voice.channel) {
+    EMBED.addFields([
+      {name: 'Current Voice Channel', value: voice.channel?.toString(), inline: true}
+    ])
+  }
 
   return EMBED;
 }
