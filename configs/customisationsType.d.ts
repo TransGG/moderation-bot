@@ -10,13 +10,13 @@ export default interface customisations {
     remove_mature: number,
     default: number
   },
-  Waive_Staff_Cant_Punish_Staff_Restriction: {
-    verify: boolean,
-    warn: boolean,
-    timeout: boolean,
-    kick: boolean,
-    ban: boolean,
-    add_mature: boolean,
-    remove_mature: boolean
+  Staff_Cant_Punish_Staff_Restriction: {
+    verify?: boolean,
+    warn?: boolean,
+    timeout?: boolean,
+    kick?: boolean,
+    ban?: boolean,
+    add_mature?: boolean,
+    remove_mature?: boolean
   },
 }

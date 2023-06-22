@@ -12,14 +12,9 @@ const config: customisations = {
     remove_mature: 30,
     default: 30
   },
-  Waive_Staff_Cant_Punish_Staff_Restriction: {
-    verify: true,
-    warn: false,
-    timeout: false,
-    kick: false,
-    ban: false,
-    add_mature: true,
-    remove_mature: false
+  Staff_Cant_Punish_Staff_Restriction: {
+    verify: false,
+    add_mature: false,
   }
 };
 
