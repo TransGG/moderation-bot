@@ -11,6 +11,10 @@ const config: customisations = {
     add_mature: 30,
     remove_mature: 30,
     default: 30
+  },
+  Staff_Cant_Punish_Staff_Restriction: {
+    verify: false,
+    add_mature: false,
   }
 };
 
