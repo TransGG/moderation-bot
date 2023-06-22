@@ -533,6 +533,8 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     // @ts-expect-error - If action is not valid, default will be used instead.
     const DAILY_ACTION_LIMITS = CUSTOMISATIONS.Daily_Action_Limits[ACTION] || CUSTOMISATIONS.Daily_Action_Limits['default']
+    // @ts-expect-error - If action is not valid, false is used as the default.
+    const WAIVE_STAFF_CANT_PUNISH_STAFF_RESTRICTION = CUSTOMISATIONS.Waive_Staff_Cant_Punish_Staff_Restriction[ACTION] || false;
 
     const activity = await COLLECTIONS.UserLog.checkModeratorActivityInTime(interaction.user.id, ACTION, durations.day);
     if (activity.length >= DAILY_ACTION_LIMITS) {
@@ -594,9 +596,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       return;
     }
 
-    if (member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles)) {
+    if (!WAIVE_STAFF_CANT_PUNISH_STAFF_RESTRICTION && member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles)) {
       await interaction.followUp({
-        content: 'You cannot take action on staff members',
+        content: 'You cannot take this action on staff members',
         ephemeral: true,
       });
       return;
