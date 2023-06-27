@@ -11,6 +11,7 @@ export default new ResponsiveContextMenuCommandBuilder()
   .setResponse(async (interaction, _interactionHandler, _command) => {
 
     if (!interaction.isUserContextMenuCommand()) return;
+    await interaction.deferReply({ ephemeral: true })
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const QUICK_BAN_ALLOWED =
