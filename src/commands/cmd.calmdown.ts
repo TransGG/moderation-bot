@@ -8,6 +8,7 @@ import { GuildMemberRoleManager } from 'discord.js';
 export default new ResponsiveSlashCommandBuilder()
   .setName('calmdown')
   .setDescription('Give the channel a 15sec slowmode')
+  .setDefaultMemberPermissions('0')
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isCommand()) return;
     _interactionHandler.addComponent(MODALS.calmdown);

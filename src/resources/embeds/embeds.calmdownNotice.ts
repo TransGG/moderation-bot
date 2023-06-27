@@ -1,8 +1,8 @@
-import { MessageEmbed, User } from 'discord.js';
+import { EmbedBuilder, User } from 'discord.js';
 
 
 export default async function calmdownNotice(staff_member: User, reason: string | undefined, message: string | undefined) {
-  const EMBED = new MessageEmbed()
+  const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Chat Calmed down by', iconURL: staff_member.displayAvatarURL() })
     .setDescription(`> ${staff_member}`)
     .setTimestamp();

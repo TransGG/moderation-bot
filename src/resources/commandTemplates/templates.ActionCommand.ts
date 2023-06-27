@@ -1,5 +1,5 @@
 import {
-  Interaction,
+  type Interaction,
   Client,
   DiscordAPIError,
   GuildMember,
@@ -11,7 +11,7 @@ import {
   SlashCommandStringOption,
   SlashCommandUserOption,
 } from '@discordjs/builders';
-import { APIApplicationCommandOptionChoice, ChannelType } from 'discord-api-types/v10';
+import { type APIApplicationCommandOptionChoice, ChannelType } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import COLLECTIONS from '@database/collections.js';

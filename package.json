@@ -18,7 +18,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@tsconfig/node16-strictest-esm": "^1.0.3",
+    "@tsconfig/node18-strictest-esm": "^1.0.1",
     "@types/common-tags": "^1.8.1",
     "@types/lodash": "^4.14.195",
     "@types/node": "^20.3.2",

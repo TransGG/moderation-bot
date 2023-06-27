@@ -1,5 +1,5 @@
 // imports
-import type { Interaction, CommandInteraction } from 'discord.js';
+import type { Interaction } from 'discord.js';
 import {
   ContextMenuCommandBuilder,
   SlashCommandBuilder,
@@ -29,7 +29,7 @@ export class ResponsiveSlashCommandSubcommandGroupBuilder
 
 export class ResponsiveSlashCommandBuilder
   extends Responsive<new () => SlashCommandBuilder>(SlashCommandBuilder) {
-  public override async respond(interaction: CommandInteraction, interactionHandler: InteractionHandler) {
+  public override async respond(interaction: Interaction, interactionHandler: InteractionHandler) {
     if (interaction.isChatInputCommand()) {
       // if there are no subcommands, call the response of the command and return
       if (!interaction.options.getSubcommand(false))

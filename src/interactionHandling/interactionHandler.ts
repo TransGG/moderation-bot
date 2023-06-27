@@ -112,7 +112,7 @@ export default class InteractionHandler {
 
     return await Promise.all([
       this.restClient.put(
-        Routes.applicationCommands(this.client.user?.id),
+        Routes.applicationCommands(String(this.client.user?.id)),
         { body: this.globalCommands ? this.commands : [] }
       ),
       ...(this.guilds ?? this.client.guilds.cache.map(g => g.id))

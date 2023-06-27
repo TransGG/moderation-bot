@@ -1,20 +1,20 @@
-import { Guild, GuildMember, Message, MessageActionRow, TextInputComponent } from 'discord.js';
+import { Guild, GuildMember, Message, ActionRowBuilder, TextInputBuilder, type TextInputModalData } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
-import { ChannelType } from 'discord-api-types/v10';
+import { ChannelType, TextInputStyle } from 'discord-api-types/v10';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
   .setTitle('Report Message')
   .addComponents(
-    new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent()
+    new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder()
       // dynamic custom id, storing channel and message id
       .setLabel('Reason')
       .setPlaceholder('An explanation of why you are reporting this message in any length')
-      .setStyle('PARAGRAPH')
+      .setStyle(TextInputStyle.Paragraph)
       .setRequired(true)
     )
   )
@@ -23,8 +23,9 @@ export default new ResponsiveModal()
     await interaction.deferReply({ ephemeral: true });
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
-    const REASON = interaction.components[0]?.components[0]?.value ?? 'No reason provided';
-    const CUSTOM_ID = interaction.components[0]?.components[0]?.customId as string;
+    const text_input = interaction.components[0]?.components[0] as TextInputModalData;
+    const REASON = text_input.value ?? 'No reason provided';
+    const CUSTOM_ID = text_input.customId as string;
     const GUILD = interaction.guild as Guild;
 
     try {
@@ -43,7 +44,7 @@ export default new ResponsiveModal()
 
         await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
           const CHANNEL = await interactionHandler.client.channels.fetch(id);
-          if (!CHANNEL?.isText()) return;
+          if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
             embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE!, GUILD)]
@@ -60,7 +61,7 @@ export default new ResponsiveModal()
 
         await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
           const CHANNEL = await interactionHandler.client.channels.fetch(id);
-          if (!CHANNEL?.isText()) return;
+          if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
             embeds: [await EMBEDS.userReport(interaction.user, REASON, MEMBER!.user, MEMBER!.voice)]
@@ -68,7 +69,7 @@ export default new ResponsiveModal()
           await reportLog.react('👍');
         }));
 
-        if (interaction.channel?.type == ChannelType.GuildVoice.toString()) {
+        if (interaction.channel?.type == ChannelType.GuildVoice) {
           await interaction.user.send('Thank you for reporting this user. The staff will take action shortly');
         }
 

@@ -9,7 +9,7 @@ export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('Report User')
   .setResponse(async (interaction, _interactionHandler, _command) => {
-    if (!interaction.isUserContextMenu()) return;
+    if (!interaction.isUserContextMenuCommand()) return;
     _interactionHandler.addComponent(MODALS.report);
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
