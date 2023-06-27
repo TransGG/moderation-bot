@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
+import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import EMBEDS from '@resources/embeds.js';
 
-export default new ResponsiveContentMenuCommandBuilder()
+export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('View Mod Logs')
   .setDefaultPermission(false)

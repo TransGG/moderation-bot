@@ -1,11 +1,11 @@
 // imports
 import chalk from 'chalk';
-import type { Client, ClientUser, Interaction, MessageButton, MessageSelectMenu, Modal } from 'discord.js';
+import type { Client, ClientUser, Interaction, ButtonBuilder, StringSelectMenuBuilder, ModalBuilder } from 'discord.js';
 import type { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import {
-  ResponsiveContentMenuCommandBuilder,
+  ResponsiveContextMenuCommandBuilder,
   ResponsiveSlashCommandBuilder,
   ResponsiveSlashCommandSubcommandBuilder,
   ResponsiveSlashCommandSubcommandGroupBuilder
@@ -21,9 +21,9 @@ type Command =
   ContextMenuCommandBuilder;
 
 type Componenent =
-  MessageButton |
-  MessageSelectMenu |
-  Modal;
+  ButtonBuilder |
+  StringSelectMenuBuilder |
+  ModalBuilder;
 
 export default class InteractionHandler {
   public readonly client: Client;
@@ -61,16 +61,18 @@ export default class InteractionHandler {
 
   public async respond(interaction: Interaction) {
     const COMMAND =
-      interaction.isButton() || interaction.isSelectMenu() || interaction.isModalSubmit() ?
-        this.components.find(i => i.customId === interaction.customId) :
+      interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit() ?
+        this.components.find(i => {
+          if ('custom_id' in i.data) return i.data.custom_id === interaction.customId;
+          return false
+        }) :
 
-        interaction.isContextMenu() || interaction.isCommand() ?
+        interaction.isContextMenuCommand() || interaction.isChatInputCommand() ?
           this.commands.find(c => c.name === interaction.commandName) :
           undefined;
     if (!COMMAND) throw new Error(`Invalid interaction created\n${interaction}`);
-
     if (
-      COMMAND instanceof ResponsiveContentMenuCommandBuilder ||
+      COMMAND instanceof ResponsiveContextMenuCommandBuilder ||
       COMMAND instanceof ResponsiveSlashCommandBuilder ||
       COMMAND instanceof ResponsiveSlashCommandSubcommandBuilder ||
       COMMAND instanceof ResponsiveSlashCommandSubcommandGroupBuilder ||
@@ -80,13 +82,17 @@ export default class InteractionHandler {
     ) await COMMAND.respond(interaction, this);
   }
 
-  public addComponent(componenet: Componenent) {
-    const EXISTING = this.components.find(i =>
-      i.toJSON().type === componenet.toJSON().type &&
-      i.customId == componenet.customId);
+  public addComponent(component: Componenent) {
+    const EXISTING = this.components.find(i => {
+      if ('type' in i.data && 'type' in component.data && 'custom_id' in i.data && 'custom_id' in component.data) {
+        return (i.data.type === component.data.type &&
+        i.data.custom_id === component.data.custom_id);
+      }
+      return false;
+    });
     if (EXISTING) this.components.splice(this.components.indexOf(EXISTING), 1);
 
-    this.components.push(componenet);
+    this.components.push(component);
   }
 
   public async setCommands(commands: Command[]) {
@@ -106,7 +112,7 @@ export default class InteractionHandler {
 
     return await Promise.all([
       this.restClient.put(
-        Routes.applicationCommands(this.client.user.id),
+        Routes.applicationCommands(this.client.user?.id),
         { body: this.globalCommands ? this.commands : [] }
       ),
       ...(this.guilds ?? this.client.guilds.cache.map(g => g.id))

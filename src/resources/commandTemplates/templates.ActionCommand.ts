@@ -1,10 +1,8 @@
 import {
+  Interaction,
   Client,
-  CommandInteraction,
-  ContextMenuInteraction,
   DiscordAPIError,
   GuildMember,
-  Interaction,
   Message,
   User,
 } from 'discord.js';
@@ -13,7 +11,7 @@ import {
   SlashCommandStringOption,
   SlashCommandUserOption,
 } from '@discordjs/builders';
-import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
+import { APIApplicationCommandOptionChoice, ChannelType } from 'discord-api-types/v10';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import COLLECTIONS from '@database/collections.js';
@@ -22,14 +20,14 @@ import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 
 function getBasicOptions(interaction: Interaction, options: Partial<OverrideActionOptions>) {
-  const DELETE_MESSAGE = options['delete-message'] ?? (interaction.isCommand() ? interaction.options.getBoolean('delete-message', false) : undefined) ?? undefined;
-  const ACTION = options['action'] ?? (interaction.isCommand() ? interaction.options.getString('action', true) : null);
+  const DELETE_MESSAGE = options['delete-message'] ?? (interaction.isChatInputCommand() ? interaction.options.getBoolean('delete-message', false) : undefined) ?? undefined;
+  const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
-  const REASON = options['reason'] ?? (interaction.isCommand() ? interaction.options.getString('reason', true) : null);
+  const REASON = options['reason'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('reason', true) : null);
   if (REASON === null) throw new Error('REASON must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
-  const PRIVATE_NOTES = options['private-notes'] ?? (interaction.isCommand() ? interaction.options.getString('private-notes', false) : undefined);
+  const PRIVATE_NOTES = options['private-notes'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('private-notes', false) : undefined);
   const RULE =
-    (options['rule'] ?? JSON.parse((interaction.isCommand() ? interaction.options.getString('rule', false) : null) ?? 'null') as
+    (options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null') as
       | string[]
       | null) ?? undefined;
 
@@ -121,12 +119,12 @@ async function sendToSrNotifyChannel(
 
   if (
     !LOG_CHANNEL ||
-    (LOG_CHANNEL.type !== 'GUILD_TEXT' &&
-      LOG_CHANNEL.type !== 'GUILD_NEWS' &&
-      LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' &&
-      LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' &&
-      LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' &&
-      LOG_CHANNEL.type !== 'DM')
+    (LOG_CHANNEL.type !== ChannelType.GuildText &&
+      LOG_CHANNEL.type !== ChannelType.GuildAnnouncement &&
+      LOG_CHANNEL.type !== ChannelType.PublicThread &&
+      LOG_CHANNEL.type !== ChannelType.PrivateThread &&
+      LOG_CHANNEL.type !== ChannelType.AnnouncementThread &&
+      LOG_CHANNEL.type !== ChannelType.DM)
   ) return;
 
   try {
@@ -175,12 +173,12 @@ async function sendToLogChannel(
 
     if (
       !LOG_CHANNEL ||
-      (LOG_CHANNEL.type !== 'GUILD_TEXT' &&
-        LOG_CHANNEL.type !== 'GUILD_NEWS' &&
-        LOG_CHANNEL.type !== 'GUILD_PUBLIC_THREAD' &&
-        LOG_CHANNEL.type !== 'GUILD_PRIVATE_THREAD' &&
-        LOG_CHANNEL.type !== 'GUILD_NEWS_THREAD' &&
-        LOG_CHANNEL.type !== 'DM')
+      (LOG_CHANNEL.type !== ChannelType.GuildText &&
+        LOG_CHANNEL.type !== ChannelType.GuildAnnouncement &&
+        LOG_CHANNEL.type !== ChannelType.PublicThread &&
+        LOG_CHANNEL.type !== ChannelType.PrivateThread &&
+        LOG_CHANNEL.type !== ChannelType.AnnouncementThread &&
+        LOG_CHANNEL.type !== ChannelType.DM)
     )
       continue;
 
@@ -196,15 +194,16 @@ async function sendToLogChannel(
 }
 
 async function validateDuration(
-  interaction: CommandInteraction | ContextMenuInteraction,
+  interaction: Interaction,
   options: Partial<OverrideActionOptions>,
 ): Promise<[boolean, number | undefined]> {
+  if (!interaction.isChatInputCommand()) return [false, undefined];
   // duration must be specific only if the action is a timeout
-  const ACTION = options['action'] ?? (interaction.isCommand() ? interaction.options.getString('action', true) : null);
+  const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
   if (ACTION !== 'timeout' && ACTION !== 'ban') return [true, undefined];
 
-  const INPUT = options['duration'] ?? (interaction.isCommand() ? interaction.options.getString('duration', false) : null);
+  const INPUT = options['duration'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('duration', false) : null);
   if (!INPUT)
     if (ACTION === 'ban')
       return [true, 0];
@@ -247,17 +246,21 @@ async function validateDuration(
       }
     }
 
-  if (
-    ACTION === 'ban' &&
-    ((duration /= 86400000) % 1 !== 0 || duration > 7 || duration < 0)
-  ) {
-    await interaction.followUp({
-      content:
-        'Ban duration must be between 1 and 7 days without hours, minutes, or seconds',
-      ephemeral: true,
-    });
-    return [false, undefined];
-  }
+  if (ACTION === 'ban')
+    return [true, duration / 1000 | 0];
+  // https://stackoverflow.com/questions/7487977/using-bitwise-or-0-to-floor-a-number :trollface:
+
+  // if (
+  //   ACTION === 'ban' &&
+  //   ((duration /= 86400000) % 1 !== 0 || duration > 7 || duration < 0)
+  // ) {
+  //   await interaction.followUp({
+  //     content:
+  //       'Ban duration must be between 1 and 7 days without hours, minutes, or seconds',
+  //     ephemeral: true,
+  //   });
+  //   return [false, undefined];
+  // }
 
   return [true, duration];
 }
@@ -265,8 +268,9 @@ async function validateDuration(
 async function sendNotice(
   USER: User,
   LOG: ModerationLog,
-  interaction: CommandInteraction | ContextMenuInteraction,
+  interaction: Interaction,
 ) {
+  if (!interaction.isCommand()) return;
   try {
     await (
       await USER.createDM()
@@ -419,10 +423,10 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         async (member) => {
           return member.bannable;
         },
-        async (member, reason, days = 0) => {
+        async (member, reason, seconds = 0) => {
           if (!member.bannable) return false;
           // FIXME: `days` option not working..?
-          return !!(await member.ban({ reason, days }));
+          return !!(await member.ban({ reason, deleteMessageSeconds: seconds	}));
         },
         { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned' },
       ],
@@ -473,7 +477,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     command: this,
     options?: Partial<OverrideActionOptions>
   ): Promise<void> => {
-    if (!interaction.isCommand() && !interaction.isContextMenu())
+    if (!interaction.isContextMenuCommand() && !interaction.isChatInputCommand())
       throw new Error('An invalid interaction type was passed into the ActionCommand response method');
 
     if (options === undefined) options = {};
@@ -492,7 +496,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     let message: Message | undefined;
     if (command.type === 'message') {
       try {
-        const messageId = options['message-id'] ?? (interaction.isCommand() ? interaction.options.getString('message-id', true) : null);
+        const messageId = options['message-id'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('message-id', true) : null);
         if (messageId === null) throw new Error('For message ActionCommands, message-id must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
         message = await interaction.channel?.messages.fetch(
           messageId
@@ -511,7 +515,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     const USER = message
       ? message.author
-      : options['user'] ?? (interaction.isCommand() ? interaction.options.getUser('user', true) : null);
+      : options['user'] ?? (interaction.isChatInputCommand() ? interaction.options.getUser('user', true) : null);
     if (USER === null) throw new Error('USER must be defined either by using a CommandInteraction, an OverrideActionOptions with it set or a message ActionCommand where it can be inferred from the message author');
     let member: GuildMember | undefined;
     try {
@@ -558,7 +562,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         try {
           const bannedUser = await interaction.guild?.members.ban(USER.id, {
             reason: REASON,
-            days: DURATION ?? 0,
+            deleteMessageSeconds: DURATION ?? 0,
           });
           const LOG = await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,

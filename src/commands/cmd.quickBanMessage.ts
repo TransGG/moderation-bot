@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
+import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { GuildMemberRoleManager, GuildMember } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 import ModMessage from './subcommands/mod/cmd.mod.message.js';
 
-export default new ResponsiveContentMenuCommandBuilder()
+export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Quick Ban')
   .setResponse(async (interaction, _interactionHandler, _command) => {

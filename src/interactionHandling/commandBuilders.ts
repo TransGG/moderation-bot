@@ -1,5 +1,5 @@
 // imports
-import type { Interaction } from 'discord.js';
+import type { Interaction, CommandInteraction } from 'discord.js';
 import {
   ContextMenuCommandBuilder,
   SlashCommandBuilder,
@@ -9,7 +9,7 @@ import {
 import { Respondable, Responsive } from './responsiveMixins.js';
 import type InteractionHandler from './interactionHandler.js';
 
-export class ResponsiveContentMenuCommandBuilder
+export class ResponsiveContextMenuCommandBuilder
   extends Responsive<new () => ContextMenuCommandBuilder>(ContextMenuCommandBuilder) { }
 
 export class ResponsiveSlashCommandSubcommandBuilder
@@ -17,8 +17,8 @@ export class ResponsiveSlashCommandSubcommandBuilder
 
 export class ResponsiveSlashCommandSubcommandGroupBuilder
   extends Respondable(SlashCommandSubcommandGroupBuilder) {
-  public async respond(interaction: Interaction, interactionHandler: InteractionHandler) {
-    if (interaction.isCommand()) {
+  public override async respond(interaction: Interaction, interactionHandler: InteractionHandler) {
+    if (interaction.isChatInputCommand()) {
       // find the subcommand and call it's response if it's responsive
       const OPTION = this.options.find(o => o.toJSON().name === interaction.options.getSubcommand());
       if (OPTION instanceof ResponsiveSlashCommandSubcommandBuilder)
@@ -29,8 +29,8 @@ export class ResponsiveSlashCommandSubcommandGroupBuilder
 
 export class ResponsiveSlashCommandBuilder
   extends Responsive<new () => SlashCommandBuilder>(SlashCommandBuilder) {
-  public override async respond(interaction: Interaction, interactionHandler: InteractionHandler) {
-    if (interaction.isCommand()) {
+  public override async respond(interaction: CommandInteraction, interactionHandler: InteractionHandler) {
+    if (interaction.isChatInputCommand()) {
       // if there are no subcommands, call the response of the command and return
       if (!interaction.options.getSubcommand(false))
         return await this.response?.(interaction, interactionHandler, Object.freeze(this));

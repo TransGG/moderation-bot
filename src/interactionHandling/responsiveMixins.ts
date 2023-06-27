@@ -1,9 +1,11 @@
-import type { Interaction, MessageButton, MessageSelectMenu, Modal, TextInputComponent } from 'discord.js';
+import type { ButtonBuilder, Interaction, TextInputBuilder } from 'discord.js';
 import type {
   ContextMenuCommandBuilder,
+  ModalBuilder,
   SlashCommandBuilder,
   SlashCommandSubcommandBuilder,
-  SlashCommandSubcommandGroupBuilder
+  SlashCommandSubcommandGroupBuilder,
+  StringSelectMenuBuilder
 } from '@discordjs/builders';
 import type InteractionHandler from './interactionHandler.js';
 
@@ -16,10 +18,10 @@ export type CommandConstructor =
   (new (...args: any[]) => SlashCommandSubcommandGroupBuilder);
 
 export type ComponentConstructor =
-  (new (...args: any[]) => MessageButton) |
-  (new (...args: any[]) => MessageSelectMenu) |
-  (new (...args: any[]) => TextInputComponent) |
-  (new (...args: any[]) => Modal);
+  (new (...args: any[]) => ButtonBuilder) |
+  (new (...args: any[]) => StringSelectMenuBuilder) |
+  (new (...args: any[]) => TextInputBuilder) |
+  (new (...args: any[]) => ModalBuilder);
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 type Constructor = CommandConstructor | ComponentConstructor;
