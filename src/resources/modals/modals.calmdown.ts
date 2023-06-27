@@ -1,0 +1,121 @@
+import { MessageActionRow, MessageButton, TextChannel, TextInputComponent } from 'discord.js';
+import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
+import EMBEDS from '../embeds.js';
+import type InteractionHandler from '@interactionHandling/interactionHandler.js';
+import { AuditLogEvent } from 'discord-api-types/v10';
+import chalk from 'chalk';
+import { getSnowflakeMap } from '@utils.js';
+
+
+async function revertSlowmode(channel: TextChannel) {
+  const audit = (await channel.guild?.fetchAuditLogs({
+    type: AuditLogEvent.ChannelUpdate,
+    limit: 5
+  }
+  ))?.entries;
+
+  if (!audit) {
+    console.error(chalk.redBright('Error: could not find channel edits in audit log'));
+    return;
+  }
+
+  for (const [_, i] of audit) {
+    const is_slowmode_change = i.changes.find(x => x.key === 'rate_limit_per_user');
+    if (i.target === channel && is_slowmode_change) {
+      const past_slowmode = Number(is_slowmode_change?.old); // Will always be a number (hope)
+
+      await channel.edit({ rateLimitPerUser: past_slowmode }, 'calmdown ended');
+
+      return;
+    }
+  }
+  // Nothing was changed back
+  console.error(chalk.redBright('Error: could not find slowmode changes in audit log'));
+}
+
+
+export default new ResponsiveModal()
+  .setCustomId('modals.calmdown')
+  .setTitle('Calm Down Chat')
+  .addComponents(
+    new MessageActionRow<TextInputComponent>().addComponents(
+      new TextInputComponent()
+        .setLabel('Reason')
+        .setCustomId('modals.calmdown.reason')
+        .setPlaceholder('An explanation of why you are calming down chat.\nOptional, but strongly suggested')
+        .setStyle('PARAGRAPH')
+        .setRequired(false)),
+
+    new MessageActionRow<TextInputComponent>().addComponents(
+      new TextInputComponent()
+        .setLabel('Message')
+        .setCustomId('modals.calmdown.message')
+        .setPlaceholder('Message that Badeline will send\nUseful if you don\'t type fast or if you want to remain anonymous')
+        .setStyle('PARAGRAPH')
+        .setRequired(false))
+  )
+  .setResponse(async (interaction, _interactionHandler: InteractionHandler, _command) => {
+    if (!interaction.isModalSubmit()) return;
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ ephemeral: true });
+
+    const slowmode_channel = interaction.channel as TextChannel;
+
+    if (!slowmode_channel.isText()) {
+      interaction.followUp('The channel is not a valid text channel');
+      return;
+    }
+    try { // mostly in case someone uses it in the one channel with 6hr slowmode
+    // 10 seconds of no talking
+      slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, {SEND_MESSAGES: false});
+      setTimeout(() => {
+        slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, {SEND_MESSAGES: true});
+      }, 10000);
+
+      // Add 5 seconds to slowmode for 30 seconds
+
+      await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 }, 'calmdown started');
+      setTimeout(revertSlowmode, 30000, slowmode_channel);
+    } catch(e) {
+      console.error(chalk.redBright(e));
+      console.log('Someone was mean to me');
+    }
+
+
+    const SNOWFLAKE_MAP = await getSnowflakeMap();
+    const sr_notify_channel = await interaction.client.channels.fetch(SNOWFLAKE_MAP.Sr_Notify_Channel);
+
+    if (!sr_notify_channel?.isText()) {
+      await interaction.followUp('Could not send to sr. staff.\n' +
+        'Tell the devs:\n> Badeline says the channel is not a text channel (`line 88`)');
+      return;
+    }
+    try {
+      sr_notify_channel.send({
+        content: `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}`,
+        embeds: [
+          await EMBEDS.calmdownNotice(
+            interaction.user,
+            interaction.components[0]?.components[0]?.value,
+            interaction.components[1]?.components[0]?.value)
+        ],
+        components: [
+          new MessageActionRow<MessageButton>()
+            .addComponents(new MessageButton()
+              .setLabel('Channel Link')
+              .setURL('https://google.com/') // placeholder
+              .setStyle('LINK')
+            )
+        ]})
+
+    } catch(e) {
+      console.error(e);
+      interaction.followUp('Could not notify sr. staff. Tell the devs to look around line 99');
+    }
+
+    if (interaction.components[1]?.components[0]?.value) {
+      await slowmode_channel.send(interaction.components[1]?.components[0]?.value);
+    }
+
+    interaction.followUp('Typescript is mean');
+  });
