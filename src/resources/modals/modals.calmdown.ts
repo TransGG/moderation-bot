@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, TextChannel, TextInputBuilder, type TextInputModalData } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, Colors, EmbedBuilder, TextChannel, TextInputBuilder, time, type TextInputModalData, Message } from 'discord.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
@@ -26,6 +26,7 @@ async function revertSlowmode(channel: TextChannel) {
 
       await channel.edit({ rateLimitPerUser: past_slowmode });
 
+      await channel.send('The slowmode has been lifted.');
       return;
     }
   }
@@ -66,17 +67,21 @@ export default new ResponsiveModal()
       return;
     }
     try { // mostly in case someone uses it in the one channel with 6hr slowmode
-    // 10 seconds of no talking
-      slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, {SendMessages: false});
-      setTimeout(() => {
-        slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, {SendMessages: true});
-      }, 10000);
+      // 10 seconds of no talking
+      slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, { SendMessages: false });
+      setTimeout(async () => {
+        slowmode_channel.permissionOverwrites.create(slowmode_channel.guild.roles.everyone, { SendMessages: true });
 
-      // Add 5 seconds to slowmode for 30 seconds
+        // Only does this after the 15 seconds of lockdown
+        await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 });
+        setTimeout(revertSlowmode, 30000, slowmode_channel);
 
-      await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 });
-      setTimeout(revertSlowmode, 30000, slowmode_channel);
-    } catch(e) {
+        await slowmode_channel.send(`The ${slowmode_channel.rateLimitPerUser + 5} second slowmode ` +
+          `will be lifted ${time((Date.now() / 1000 | 0) + 30, 'R')}`);
+
+      }, 15000);
+
+    } catch (e) {
       console.error(chalk.redBright(e));
       console.log('Someone was mean to me');
     }
@@ -90,32 +95,55 @@ export default new ResponsiveModal()
         'Tell the devs:\n> Badeline says the channel is not a text channel (`line 88`)');
       return;
     }
+
+    let sent_message: Message;
+    if ((interaction.components[1]?.components[0] as TextInputModalData).value) {
+      const mod_message = (interaction.components[1]?.components[0] as TextInputModalData).value;
+      sent_message = await slowmode_channel.send({
+        content: '🚨 Chat has Entered Calmdown Mode 🚨',
+        embeds: [
+          new EmbedBuilder()
+            .setAuthor({
+              name: 'A message from the mods',
+              iconURL: String(interaction.client.user.avatarURL())
+            })
+            .setColor(Colors.Red)
+            .setDescription(`> ${mod_message.split('\n').join('\n> ')}` + // add quotes
+              `\n\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + 15, 'R')}`) // relative timestamp
+        ]
+      });
+    } else {
+      sent_message = await slowmode_channel.send({
+        content: '🚨 Chat has Entered Calmdown Mode 🚨',
+        embeds: [
+          new EmbedBuilder()
+            .setAuthor({
+              name: 'Expect a message from the mods',
+              iconURL: String(interaction.client.user.avatarURL())
+            })
+            .setColor(Colors.Red)
+            .setDescription(`\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + 15, 'R')}`)
+        ]
+      });
+    }
     try {
       sr_notify_channel.send({
         content: `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}`,
         embeds: [
           await EMBEDS.calmdownNotice(
             interaction.user,
-            (interaction.components[0]?.components[0] as TextInputModalData).value,
-            (interaction.components[1]?.components[0] as TextInputModalData).value)
-        ],
-        components: [
-          new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(new ButtonBuilder()
-              .setLabel('Channel Link')
-              .setURL(slowmode_channel.url)
-              .setStyle(ButtonStyle.Link)
-            )
-        ]})
+            sent_message,
+            (interaction.components[0]?.components[0] as TextInputModalData).value
+          )],
+        allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
+      });
 
-    } catch(e) {
+    } catch (e) {
       console.error(e);
-      interaction.followUp('Could not notify sr. staff. Tell the devs to look around line 99');
+      interaction.followUp('Could not notify sr. staff. Tell the devs to look around `line 153`');
+      return;
     }
 
-    if ((interaction.components[1]?.components[0] as TextInputModalData).value) {
-      await slowmode_channel.send((interaction.components[1]?.components[0] as TextInputModalData).value);
-    }
 
-    interaction.followUp('Typescript is mean');
+    interaction.followUp('Chat is being calmed down');
   });
