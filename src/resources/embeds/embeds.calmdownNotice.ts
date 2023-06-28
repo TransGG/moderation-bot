@@ -11,7 +11,10 @@ export default async function calmdownNotice(staff_member: User, linked_message:
     EMBED.addFields([
       { name: 'Reason', value: reason, inline: false },
     ]);
-
+  } else {
+    EMBED.addFields([
+      { name: 'Reason', value: 'No reason was given', inline: false }
+    ]);
   }
 
   EMBED.addFields([
