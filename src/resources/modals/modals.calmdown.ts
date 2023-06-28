@@ -2,36 +2,16 @@ import { ActionRowBuilder, Colors, EmbedBuilder, TextChannel, TextInputBuilder, 
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
-import { AuditLogEvent, TextInputStyle } from 'discord-api-types/v10';
+import { TextInputStyle } from 'discord-api-types/v10';
 import chalk from 'chalk';
 import { getSnowflakeMap } from '@utils.js';
 
 
-async function revertSlowmode(channel: TextChannel) {
-  const audit = (await channel.guild?.fetchAuditLogs({
-    type: AuditLogEvent.ChannelUpdate,
-    limit: 5
-  }
-  ))?.entries;
+async function revertSlowmode(channel: TextChannel, previous_slowmode: number) {
+  await channel.edit({ rateLimitPerUser: previous_slowmode });
 
-  if (!audit) {
-    console.error(chalk.redBright('Error: could not find channel edits in audit log'));
-    return;
-  }
-
-  for (const [_, i] of audit) {
-    const is_slowmode_change = i.changes.find(x => x.key === 'rate_limit_per_user');
-    if (i.target === channel && is_slowmode_change) {
-      const past_slowmode = Number(is_slowmode_change?.old); // Will always be a number (hope)
-
-      await channel.edit({ rateLimitPerUser: past_slowmode });
-
-      await channel.send('The slowmode has been lifted.');
-      return;
-    }
-  }
-  // Nothing was changed back
-  console.error(chalk.redBright('Error: could not find slowmode changes in audit log'));
+  await channel.send('The slowmode has been lifted.');
+  return;
 }
 
 
@@ -61,6 +41,7 @@ export default new ResponsiveModal()
     await interaction.deferReply({ ephemeral: true });
 
     const slowmode_channel = interaction.channel as TextChannel;
+    const previous_slowmode = slowmode_channel.rateLimitPerUser;
 
     if (!slowmode_channel.isTextBased()) {
       interaction.followUp('The channel is not a valid text channel');
@@ -74,9 +55,9 @@ export default new ResponsiveModal()
 
         // Only does this after the 15 seconds of lockdown
         await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 });
-        setTimeout(revertSlowmode, 30000, slowmode_channel);
+        setTimeout(revertSlowmode, 30000, slowmode_channel, previous_slowmode);
 
-        await slowmode_channel.send(`The ${slowmode_channel.rateLimitPerUser + 5} second slowmode ` +
+        await slowmode_channel.send(`The ${slowmode_channel.rateLimitPerUser} second slowmode ` +
           `will be lifted ${time((Date.now() / 1000 | 0) + 30, 'R')}`);
 
       }, 15000);
