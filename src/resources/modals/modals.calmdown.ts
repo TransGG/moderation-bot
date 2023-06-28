@@ -7,8 +7,8 @@ import chalk from 'chalk';
 import { getSnowflakeMap } from '@utils.js';
 
 
-async function revertSlowmode(channel: TextChannel, previous_slowmode: number) {
-  await channel.edit({ rateLimitPerUser: previous_slowmode });
+async function revertSlowmode(channel: TextChannel) {
+  await channel.edit({ rateLimitPerUser: channel.rateLimitPerUser - 5 });
 
   await channel.send('The slowmode has been lifted.');
   return;
@@ -41,7 +41,6 @@ export default new ResponsiveModal()
     await interaction.deferReply({ ephemeral: true });
 
     const slowmode_channel = interaction.channel as TextChannel;
-    const previous_slowmode = slowmode_channel.rateLimitPerUser;
 
     if (!slowmode_channel.isTextBased()) {
       interaction.followUp('The channel is not a valid text channel');
@@ -55,7 +54,7 @@ export default new ResponsiveModal()
 
         // Only does this after the 15 seconds of lockdown
         await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 });
-        setTimeout(revertSlowmode, 30000, slowmode_channel, previous_slowmode);
+        setTimeout(revertSlowmode, 30000, slowmode_channel);
 
         await slowmode_channel.send(`The ${slowmode_channel.rateLimitPerUser} second slowmode ` +
           `will be lifted ${time((Date.now() / 1000 | 0) + 30, 'R')}`);
