@@ -1,8 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, Colors, EmbedBuilder, TextChannel, TextInputBuilder, time, type TextInputModalData, Message } from 'discord.js';
+import { ActionRowBuilder, Colors, EmbedBuilder, TextChannel, TextInputBuilder, time, type TextInputModalData, Message } from 'discord.js';
 import { ResponsiveModal } from '@interactionHandling/componentBuilders.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
-import { AuditLogEvent, ButtonStyle, TextInputStyle } from 'discord-api-types/v10';
+import { AuditLogEvent, TextInputStyle } from 'discord-api-types/v10';
 import chalk from 'chalk';
 import { getSnowflakeMap } from '@utils.js';
 
