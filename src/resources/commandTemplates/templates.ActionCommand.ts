@@ -250,18 +250,6 @@ async function validateDuration(
     return [true, duration / 1000 | 0];
   // https://stackoverflow.com/questions/7487977/using-bitwise-or-0-to-floor-a-number :trollface:
 
-  // if (
-  //   ACTION === 'ban' &&
-  //   ((duration /= 86400000) % 1 !== 0 || duration > 7 || duration < 0)
-  // ) {
-  //   await interaction.followUp({
-  //     content:
-  //       'Ban duration must be between 1 and 7 days without hours, minutes, or seconds',
-  //     ephemeral: true,
-  //   });
-  //   return [false, undefined];
-  // }
-
   return [true, duration];
 }
 
