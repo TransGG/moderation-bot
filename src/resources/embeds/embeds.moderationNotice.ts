@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { Colors, EmbedBuilder } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
 import { getRules } from '@utils.js';
 
@@ -18,31 +18,31 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     }
   })();
 
-  const EMBED = new MessageEmbed()
-    .setColor('YELLOW')
+  const EMBED = new EmbedBuilder()
+    .setColor(Colors.Yellow)
     .setTitle('Notice')
     .setDescription(`You have been ${ACTION}.`)
-    .addField('Reason', log.reason, true);
+    .addFields([{name: 'Reason', value: log.reason, inline: true}]);
 
   const RULES = await getRules();
 
-  if (log.rule && (log.action !== 'verify' && log.action !== 'add_mature')) EMBED.addField(
-    `Rule ${log.rule?.map(rule => RULES[rule]?.ruleNumber ?? rule).join('.') ?? ''}`,
-    <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
-    true
-  );
+  if (log.rule && (log.action !== 'verify' && log.action !== 'add_mature')) EMBED.addFields([{
+    name: `Rule ${log.rule?.map(rule => RULES[rule]?.ruleNumber ?? rule).join('.') ?? ''}`,
+    value: <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
+    inline: true
+  }]);
 
-  if (log.messageInfo?.content) EMBED.addField(
-    'Infracting Message Content',
-    log.messageInfo.content,
-    false
-  );
+  if (log.messageInfo?.content) EMBED.addFields([{
+    name: 'Infracting Message Content',
+    value: log.messageInfo.content,
+    inline: false
+  }]);
 
-  if (log.messageInfo?.attachments.size) EMBED.addField(
-    'Infracting Message Attachments',
-    log.messageInfo.attachments.map(a => a.url).join('\n'),
-    false
-  );
+  if (log.messageInfo?.attachments.size) EMBED.addFields([{
+    name: 'Infracting Message Attachments',
+    value: log.messageInfo.attachments.map(a => a.url).join('\n'),
+    inline: false
+  }]);
 
   return EMBED;
 }

@@ -5,12 +5,14 @@ import messageReport from './embeds/embeds.messageReport.js';
 import userReport from './embeds/embeds.userReport.js';
 import moderationLogs from './embeds/embeds.moderationLogs.js';
 import moderationNotice from './embeds/embeds.moderationNotice.js';
+import calmdownNotice from './embeds/embeds.calmdownNotice.js';
 
 const EMBEDS = {
   messageReport,
   userReport,
   moderationLogs,
-  moderationNotice
+  moderationNotice,
+  calmdownNotice
 };
 
 // TODO: a more centralised way to reload?

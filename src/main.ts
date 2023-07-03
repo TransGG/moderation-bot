@@ -1,7 +1,7 @@
 // import stuff
 import chalk from 'chalk';
 import { oneLineTrim } from 'common-tags';
-import { Client, Intents } from 'discord.js';
+import { Client, IntentsBitField } from 'discord.js';
 import InteractionHandler from './interactionHandling/interactionHandler.js';
 import { getCommands, getCoreConf, getAdvancedConf, getSnowflakeMap, watchAndReloadCommands } from './utils.js';
 
@@ -11,10 +11,11 @@ const SNOWFLAKE_MAP = await getSnowflakeMap();
 // define client
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_MESSAGES
+    IntentsBitField.Flags.Guilds,
+    IntentsBitField.Flags.GuildMembers,
+    IntentsBitField.Flags.GuildMessages
   ]
+
 }).once('ready', () => console.log(chalk.greenBright('Logged in'))) as
   Client & { readonly interactionHandler: InteractionHandler };
 
@@ -32,9 +33,6 @@ if ((await getAdvancedConf()).Hot_Reload_Commands) {
   watchAndReloadCommands(client.interactionHandler);
 }
 
-// TODO: put all strings in a file
-// TODO: warning message to a channel when a message with a banned word is sent or edited
-// TODO: command to send a message embed to a channel, warning to stop a discussion
 
 // login
 console.log(chalk.cyanBright('Logging in'));

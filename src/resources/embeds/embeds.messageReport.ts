@@ -1,4 +1,4 @@
-import { Guild, Message, MessageEmbed, Snowflake, User } from 'discord.js';
+import { Guild, Message, EmbedBuilder, type Snowflake, User } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 
 function pushReportsCount(array: string[], length: number, prevTimeLength: number, time: string) {
@@ -24,7 +24,7 @@ async function reportsCountSummary(userID: Snowflake) {
 }
 
 export default async function messageReport(reporter: User, reason: string, message: Message, guild: Guild) {
-  const EMBED = new MessageEmbed()
+  const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
     .setDescription(`> ${reporter}`)
     .addFields([

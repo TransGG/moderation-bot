@@ -1,16 +1,16 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
+import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { GuildMemberRoleManager, GuildMember } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 import ModMessage from './subcommands/mod/cmd.mod.message.js';
 
-export default new ResponsiveContentMenuCommandBuilder()
+export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Quick Ban')
   .setResponse(async (interaction, _interactionHandler, _command) => {
 
-    if (!interaction.isMessageContextMenu()) return;
+    if (!interaction.isMessageContextMenuCommand()) return;
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const QUICK_BAN_ALLOWED =
@@ -36,19 +36,21 @@ export default new ResponsiveContentMenuCommandBuilder()
     const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
 
     if (!GUILD_MEMBER) {
-      return await interaction.reply({
+      await interaction.reply({
         content: 'Failed to find the member to be banned, please check that the member is still in the server and use the normal ban command instead',
         ephemeral: true
       });
+      return;
     }
 
     const JOINED_AT = GUILD_MEMBER.joinedAt;
 
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
-      return await interaction.reply({
+      await interaction.reply({
         content: 'This member joined the server too long ago to be quick banned, please use the normal ban command instead',
         ephemeral: true
-      })
+      });
+      return;
     }
 
     ModMessage.response(interaction, _interactionHandler, ModMessage, {

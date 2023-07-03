@@ -3,7 +3,7 @@
 // better checking for rules, but for now we know a situ with no rules broken or
 // can never happen
 
-import { MessageEmbed, User } from 'discord.js';
+import { EmbedBuilder, User } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 import { getCustomisations, getRules } from '@utils.js';
 
@@ -17,7 +17,7 @@ export default async function moderationLogs(user: User, page = 1) {
   const STARTING_INDEX = (page - 1) * LPP;
   const RULES = await getRules();
 
-  return new MessageEmbed()
+  return new EmbedBuilder()
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
     .setDescription(`> <@${user.id}>`)
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })

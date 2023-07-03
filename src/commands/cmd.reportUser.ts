@@ -1,15 +1,15 @@
 import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { ResponsiveContentMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
+import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import MODALS from '@resources/modals.js';
 import { GuildMemberRoleManager } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 
-export default new ResponsiveContentMenuCommandBuilder()
+export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('Report User')
   .setResponse(async (interaction, _interactionHandler, _command) => {
-    if (!interaction.isUserContextMenu()) return;
+    if (!interaction.isUserContextMenuCommand()) return;
     _interactionHandler.addComponent(MODALS.report);
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
