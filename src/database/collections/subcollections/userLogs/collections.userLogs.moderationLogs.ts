@@ -42,8 +42,8 @@ export default class ModerationLog {
   public readonly moderator: Snowflake;
   public readonly reason: string;
 
-  public readonly timeoutDuration?: number;
-  public readonly rule?: string[];
+  public readonly duration?: number;
+  public readonly rule: string;
   public readonly privateNotes?: string;
   public readonly action: string;
 
@@ -52,9 +52,9 @@ export default class ModerationLog {
     user: User,
     action: string,
     reason: string,
-    rule?: string[],
+    rule: string,
     privateNotes?: string,
-    timeoutDuration?: number,
+    duration?: number,
     message?: Message
   ) {
     this.moderator = moderator;
@@ -62,9 +62,9 @@ export default class ModerationLog {
     this.reason = reason;
     this.action = action;
 
-    if (rule) this.rule = rule;
+    this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;
-    if (action === 'timeout' && timeoutDuration) this.timeoutDuration = timeoutDuration;
+    if ((action === 'timeout' || action === 'ban') && duration) this.duration = duration;
     if (message) this.messageInfo = getMessageInfo(message);
   }
 }

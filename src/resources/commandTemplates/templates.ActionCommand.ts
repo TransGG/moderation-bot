@@ -26,10 +26,7 @@ function getBasicOptions(interaction: Interaction, options: Partial<OverrideActi
   const REASON = options['reason'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('reason', true) : null);
   if (REASON === null) throw new Error('REASON must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
   const PRIVATE_NOTES = options['private-notes'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('private-notes', false) : undefined);
-  const RULE =
-    (options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null') as
-      | string[]
-      | null) ?? undefined;
+  const RULE = options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null');
 
   return {
     DELETE_MESSAGE,
@@ -40,20 +37,14 @@ function getBasicOptions(interaction: Interaction, options: Partial<OverrideActi
   };
 }
 
-async function getRuleDescriptions(rules: string[]): Promise<string[]> {
+export async function getRuleDescriptions(rule: string): Promise<string> {
   const RULES = await getRules();
 
-  const RESULT: string[] = [];
-
-  for (const RULE of rules) {
-    const RESOLVED_RULE = RULES[RULE] ?? {
-      ruleNumber: 0,
-      shortDesc: `Deleted rule; (${RULE})`,
-    };
-    RESULT.push(`${RESOLVED_RULE?.ruleNumber}. ${RESOLVED_RULE?.shortDesc ?? 'Unknown rule'}`);
+  const RESOLVED_RULE = RULES[rule] ?? {
+    ruleNumber: 0,
+    shortDesc: `Deleted rule; (${rule})`,
   }
-
-  return RESULT;
+  return `${RESOLVED_RULE?.ruleNumber}. ${RESOLVED_RULE?.shortDesc ?? 'Unknown rule'}`;
 }
 
 const durations = {
@@ -102,10 +93,10 @@ async function formatLogMessage(
       user.id
     }\`, <@${user.id}>]` + (
       log.action === 'timeout' ?
-        ` *for ${log.timeoutDuration ? formatDuration(log.timeoutDuration) : 'an unknown amount of time'}*` : ''
+        ` *for ${log.duration ? formatDuration(log.duration) : 'an unknown amount of time'}*` : ''
     ) +
       `\n> ${reason}` +
-      ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
+      ` (Rules: ${(await getRuleDescriptions(log.rule ?? ''))}` +
       (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
   );
 }
@@ -152,6 +143,8 @@ async function sendToLogChannel(
     extraActionOptions
   );
 
+  const LOG_EMBED = await EMBEDS.logNotice(client, user, log, extraActionOptions);
+
   const RULES = await getRules();
 
   const LOG_CHANNEL_CATEGORIES = [log.action];
@@ -185,6 +178,7 @@ async function sendToLogChannel(
     try {
       await LOG_CHANNEL.send({
         content: LOG_MESSAGE,
+        embeds: [LOG_EMBED],
         allowedMentions: { parse: [] },
       });
     } catch {
@@ -247,8 +241,7 @@ async function validateDuration(
     }
 
   if (ACTION === 'ban')
-    return [true, duration / 1000 | 0];
-  // https://stackoverflow.com/questions/7487977/using-bitwise-or-0-to-floor-a-number :trollface:
+    return [true, Math.floor(duration / 1000)];
 
   return [true, duration];
 }
@@ -290,7 +283,7 @@ export interface OverrideActionOptions {
   'delete-message': boolean;
   'action': string;
   reason: string;
-  rule: string[];
+  rule: string;
   duration: string;
   'private-notes': string;
 }

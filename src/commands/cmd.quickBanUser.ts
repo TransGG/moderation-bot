@@ -59,7 +59,7 @@ export default new ResponsiveContextMenuCommandBuilder()
       user: GUILD_MEMBER.user,
       'action': 'ban',
       reason: 'Banned for breaking the rules in under 7 days of joining',
-      rule: ['other'],
+      rule: 'other',
       duration: '7d',
       'private-notes': 'Quick Banned Member | No Private Notes Provided'
     });

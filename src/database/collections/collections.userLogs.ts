@@ -56,9 +56,9 @@ export default class UserLog {
     user: User,
     action: string,
     reason: string,
-    rule?: string[],
+    rule: string,
     privateNotes?: string,
-    timeoutDuration?: number,
+    duration?: number,
     message?: Message
   ) {
     const MODERATION_LOG = new ModerationLog(
@@ -68,7 +68,7 @@ export default class UserLog {
       reason,
       rule,
       privateNotes,
-      timeoutDuration,
+      duration,
       message
     );
     const USER_LOG = await UserLog.getUserLog(user.id);
