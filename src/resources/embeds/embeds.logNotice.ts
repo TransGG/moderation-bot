@@ -10,7 +10,7 @@ const durations = {
   second: 1000,
   millisecond: 1
 }
-function formatDuration (ms: number) {
+function formatDuration(ms: number) {
   const parts = [];
 
   for (const [name, duration] of Object.entries(durations)) {
@@ -24,9 +24,7 @@ function formatDuration (ms: number) {
   return parts.join(', ');
 }
 
-
-
-export default async function logNotice(client: Client, user: User,log: InstanceType<typeof COLLECTIONS.ModerationLog>, extraActionOptions: ExtraActionOptions) {
+export default async function logNotice(client: Client, user: User, log: InstanceType<typeof COLLECTIONS.ModerationLog>, extraActionOptions: ExtraActionOptions) {
   let moderator: User | null = null;
   try {
     moderator = await client.users.fetch(log.moderator);
@@ -37,13 +35,10 @@ export default async function logNotice(client: Client, user: User,log: Instance
   const reason =
     log.reason.length <= 1024 ? log.reason : log.reason.slice(0, 1020) + '...';
 
-  const title = `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${
-    extraActionOptions.pastTense
-  }* ${log.userState.username}${log.userState.discriminator === '0' ? '' : '#' + log.userState.discriminator}`;
+  const title = `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense
+    }* ${log.userState.username}${log.userState.discriminator === '0' ? '' : '#' + log.userState.discriminator}`;
 
-  const desc = `> [\`${
-    user.id
-  }\`, <@${user.id}>]`;
+  const desc = `> <@${user.id}> (\`${user.id}\`)`;
   const duration = log.duration ? formatDuration(log.duration) : '';
 
   const EMBED = new EmbedBuilder()
@@ -51,15 +46,16 @@ export default async function logNotice(client: Client, user: User,log: Instance
     .setTitle(title)
     .setDescription(desc)
     .addFields([
-      {name: 'Reason', value: reason, inline: false},
-      {name: 'Rule', value: await getRuleDescriptions(log.rule), inline: false},
+      { name: 'Reason', value: `>>> ${reason}`, inline: false },
+      { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: false },
     ])
 
   if (duration) {
     EMBED.addFields([{
       name: 'Duration',
       value: duration,
-      inline: false,},
+      inline: false,
+    },
     ])
   }
 
@@ -74,15 +70,25 @@ export default async function logNotice(client: Client, user: User,log: Instance
   if (log.messageInfo?.content) {
     EMBED.addFields([{
       name: 'Infracting Message Content',
-      value: log.messageInfo.content,
+      value: `${log.messageInfo.content}`,
       inline: false
     }]);
+  }
+
+  var attachments_list: [string] = [''];
+  if (log.messageInfo?.attachments.size) {
+    var count = 1;
+    attachments_list.pop();
+    log.messageInfo?.attachments.each((i, _) => {
+      attachments_list?.push(`[${count}](${i.url})`);
+      count += 1;
+    });
   }
 
   if (log.messageInfo?.attachments.size) {
     EMBED.addFields([{
       name: 'Infracting Message Attachments',
-      value: log.messageInfo.attachments.map(a => a.url).join('\n'),
+      value: attachments_list?.join() ?? 'none',
       inline: false
     }]);
   }
