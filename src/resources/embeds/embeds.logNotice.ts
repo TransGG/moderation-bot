@@ -1,4 +1,4 @@
-import { Client, Colors, DiscordAPIError, EmbedBuilder, User } from 'discord.js';
+import { Client, Colors, DiscordAPIError, EmbedBuilder, User, time } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
 import { getRuleDescriptions, type ExtraActionOptions } from '@resources/commandTemplates/templates.ActionCommand.js';
 
@@ -35,8 +35,8 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   const reason =
     log.reason.length <= 1024 ? log.reason : log.reason.slice(0, 1020) + '...';
 
-  const title = `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense
-    }* ${log.userState.username}${log.userState.discriminator === '0' ? '' : '#' + log.userState.discriminator}`;
+  const title = `${extraActionOptions.emoji} ${log.userState.username}${log.userState.discriminator === '0' ? ''
+    : '#' + log.userState.discriminator} was ${extraActionOptions.pastTense}`;
 
   const desc = `> <@${user.id}> (\`${user.id}\`)`;
   const duration = log.duration ? formatDuration(log.duration) : '';
@@ -44,19 +44,36 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   const EMBED = new EmbedBuilder()
     .setColor(Colors.Yellow)
     .setTitle(title)
-    .setDescription(desc)
     .addFields([
+      { name: 'User', value: desc, inline: true },
+      { name: 'Moderator', value: String(moderator) ?? 'Error: Could not fetch moderator', inline: true },
       { name: 'Reason', value: `>>> ${reason}`, inline: false },
-      { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: false },
-    ])
+      { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: true },
+    ]);
 
   if (duration) {
-    EMBED.addFields([{
-      name: 'Duration',
-      value: duration,
-      inline: false,
-    },
-    ])
+
+    if (log.action === 'timeout' && log.duration) {
+      EMBED.addFields([{
+        name: 'Timeout Duration',
+        value: `${duration} (Ends in ${time(Math.trunc((Date.now() + log.duration) / 1000), 'R')})`,
+        inline: true,
+      },
+
+      ]);
+    }
+
+
+    if (log.action === 'ban') {
+
+      EMBED.addFields([{
+        name: 'Deleted Messages For',
+        value: duration,
+        inline: true,
+      },
+
+      ]);
+    }
   }
 
   if (log.privateNotes) {
@@ -71,25 +88,23 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     EMBED.addFields([{
       name: 'Infracting Message Content',
       value: `${log.messageInfo.content}`,
-      inline: false
+      inline: true
     }]);
   }
 
-  var attachments_list: [string] = [''];
   if (log.messageInfo?.attachments.size) {
+    var attachments_list: [string] = [''];
     var count = 1;
     attachments_list.pop();
-    log.messageInfo?.attachments.each((i, _) => {
+    log.messageInfo?.attachments.each(i => {
       attachments_list?.push(`[${count}](${i.url})`);
       count += 1;
     });
-  }
 
-  if (log.messageInfo?.attachments.size) {
     EMBED.addFields([{
       name: 'Infracting Message Attachments',
       value: attachments_list?.join() ?? 'none',
-      inline: false
+      inline: true
     }]);
   }
 
