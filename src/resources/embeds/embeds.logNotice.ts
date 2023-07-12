@@ -33,7 +33,11 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   }
 
   const reason =
-    log.reason.length <= 1024 ? log.reason : log.reason.slice(0, 1020) + '...';
+    log.reason.length <= 1020 ? log.reason : log.reason.slice(0, 1015) + '...';
+
+  const message_content =
+    (log.messageInfo?.content?.length as number) <= 1020 ? log.messageInfo?.content :
+      log.messageInfo?.content.slice(0, 1015) + '...';
 
   const title = `${extraActionOptions.emoji} ${log.userState.username}${log.userState.discriminator === '0' ? ''
     : '#' + log.userState.discriminator} was ${extraActionOptions.pastTense}`;
@@ -46,8 +50,8 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     .setTitle(title)
     .addFields([
       { name: 'User', value: desc, inline: true },
-      { name: 'Moderator', value: String(moderator) ?? 'Error: Could not fetch moderator', inline: true },
-      { name: 'Reason', value: `>>> ${reason}`, inline: false },
+      { name: 'Moderator', value: `> ${moderator}` ?? '> Error: Could not fetch moderator', inline: true },
+      { name: '\u200B', value: '\u200B' },
       { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: true },
     ]);
 
@@ -56,39 +60,38 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     if (log.action === 'timeout' && log.duration) {
       EMBED.addFields([{
         name: 'Timeout Duration',
-        value: `${duration} (Ends in ${time(Math.trunc((Date.now() + log.duration) / 1000), 'R')})`,
+        value: `> ${duration} (Ends ${time(Math.trunc((Date.now() + log.duration) / 1000), 'R')})`,
         inline: true,
-      },
-
-      ]);
+      }]);
     }
-
 
     if (log.action === 'ban') {
-
       EMBED.addFields([{
         name: 'Deleted Messages For',
-        value: duration,
+        value: `> ${duration}`,
         inline: true,
-      },
-
-      ]);
+      }]);
     }
   }
+
+  EMBED.addFields([
+    { name: '\u200B', value: '\u200B' },
+    { name: 'Reason', value: `>>> ${reason}` },
+  ]);
 
   if (log.privateNotes) {
     EMBED.addFields([{
       name: 'Private Notes',
       value: `> ${log.privateNotes}`,
-      inline: false,
     }]);
   }
+
+  EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
 
   if (log.messageInfo?.content) {
     EMBED.addFields([{
       name: 'Infracting Message Content',
-      value: `${log.messageInfo.content}`,
-      inline: true
+      value: `>>> ${message_content}`,
     }]);
   }
 
@@ -103,8 +106,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
 
     EMBED.addFields([{
       name: 'Infracting Message Attachments',
-      value: attachments_list?.join() ?? 'none',
-      inline: true
+      value: `> ${attachments_list?.join() ?? 'none'}`,
     }]);
   }
 
