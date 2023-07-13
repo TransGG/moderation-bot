@@ -48,6 +48,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   const EMBED = new EmbedBuilder()
     .setColor(Colors.Yellow)
     .setTitle(title)
+    .setColor(extraActionOptions.color)
     .addFields([
       { name: 'User', value: desc, inline: true },
       { name: 'Moderator', value: `> ${moderator}` ?? '> Error: Could not fetch moderator', inline: true },
