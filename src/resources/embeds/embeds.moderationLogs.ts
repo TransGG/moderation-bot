@@ -17,13 +17,13 @@ export default async function moderationLogs(user: User, page = 1) {
   const STARTING_INDEX = (page - 1) * LPP;
   const RULES = await getRules();
 
-  return new EmbedBuilder()
+  const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
     .setDescription(`> <@${user.id}>`)
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
     .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => {
-      const rule = RULES[log.rule![0]!]; // FIXME: Breaks with multiple rules
-      const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule![0]!})` : `Deleted rule (${log.rule![0]!})`;
+      const rule = RULES[log.rule];
+      const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule})` : `Deleted rule (${log.rule})`;
 
       return [
         {
@@ -41,5 +41,7 @@ export default async function moderationLogs(user: User, page = 1) {
           value: log.action,
           inline: true
         }
-      ]}).flat());
+      ]
+    }).flat());
+  return EMBED;
 }

@@ -1,7 +1,7 @@
 import type customisations from './customisationsType';
 
 const config: customisations = {
-  Moderation_Logs_Per_Page: 10,
+  Moderation_Logs_Per_Page: 8,
   Daily_Action_Limits: {
     verify: 30,
     warn: 30,
