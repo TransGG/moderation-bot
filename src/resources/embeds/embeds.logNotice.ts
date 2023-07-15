@@ -97,8 +97,8 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   }
 
   if (log.messageInfo?.attachments.size) {
-    var attachments_list: [string] = [''];
-    var count = 1;
+    const attachments_list: [string] = [''];
+    let count = 1;
     attachments_list.pop();
     log.messageInfo?.attachments.each(i => {
       attachments_list?.push(`[${count}](${i.url})`);

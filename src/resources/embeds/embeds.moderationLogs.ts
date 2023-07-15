@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-// FIXME: We shouldn't be disabling this assertion. At some point, let's add in
-// better checking for rules, but for now we know a situ with no rules broken or
-// can never happen
-
 import { EmbedBuilder, User } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
 import { getCustomisations, getRules } from '@utils.js';

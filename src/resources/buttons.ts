@@ -1,9 +1,10 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
+import modLogActionRow from './buttons/buttons.moderationLog.js';
 
 const BUTTONS = {
-  // TODO: next, prev pages button
+  modLogActionRow
 };
 
 // TODO: a more centralised way to reload?
