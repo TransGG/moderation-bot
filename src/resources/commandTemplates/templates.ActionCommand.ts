@@ -469,7 +469,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       throw new Error('An invalid interaction type was passed into the ActionCommand response method');
 
     if (options === undefined) options = {};
-    await interaction.deferReply({ ephemeral: true });
+    if (!interaction.deferred && !interaction.replied) await interaction.deferReply({ ephemeral: true });
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
 
