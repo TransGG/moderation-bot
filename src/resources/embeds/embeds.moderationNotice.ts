@@ -8,7 +8,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     switch (log.action) {
     case 'warn': return 'warned';
     case 'timeout': return 'timed out until ' +
-        `<t:${Math.floor((log.timestamp + <number>log.timeoutDuration) / 1000)}:F>`;
+        `<t:${Math.floor((log.timestamp + <number>log.duration) / 1000)}:F>`;
     case 'kick': return 'kicked';
     case 'ban': return 'banned';
     case 'verify': return 'verified';
@@ -27,7 +27,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
   const RULES = await getRules();
 
   if (log.rule && (log.action !== 'verify' && log.action !== 'add_mature')) EMBED.addFields([{
-    name: `Rule ${log.rule?.map(rule => RULES[rule]?.ruleNumber ?? rule).join('.') ?? ''}`,
+    name: `Rule ${log.rule}`,
     value: <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
     inline: true
   }]);

@@ -1,10 +1,10 @@
 import {
   type Interaction,
   Client,
-  DiscordAPIError,
   GuildMember,
   Message,
   User,
+  Colors
 } from 'discord.js';
 import {
   SlashCommandBooleanOption,
@@ -26,10 +26,7 @@ function getBasicOptions(interaction: Interaction, options: Partial<OverrideActi
   const REASON = options['reason'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('reason', true) : null);
   if (REASON === null) throw new Error('REASON must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
   const PRIVATE_NOTES = options['private-notes'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('private-notes', false) : undefined);
-  const RULE =
-    (options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null') as
-      | string[]
-      | null) ?? undefined;
+  const RULE = options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null');
 
   return {
     DELETE_MESSAGE,
@@ -40,20 +37,14 @@ function getBasicOptions(interaction: Interaction, options: Partial<OverrideActi
   };
 }
 
-async function getRuleDescriptions(rules: string[]): Promise<string[]> {
+export async function getRuleDescriptions(rule: string): Promise<string> {
   const RULES = await getRules();
 
-  const RESULT: string[] = [];
-
-  for (const RULE of rules) {
-    const RESOLVED_RULE = RULES[RULE] ?? {
-      ruleNumber: 0,
-      shortDesc: `Deleted rule; (${RULE})`,
-    };
-    RESULT.push(`${RESOLVED_RULE?.ruleNumber}. ${RESOLVED_RULE?.shortDesc ?? 'Unknown rule'}`);
+  const RESOLVED_RULE = RULES[rule] ?? {
+    ruleNumber: 0,
+    shortDesc: `Deleted rule; (${rule})`,
   }
-
-  return RESULT;
+  return `${RESOLVED_RULE?.ruleNumber}. ${RESOLVED_RULE?.shortDesc ?? 'Unknown rule'}`;
 }
 
 const durations = {
@@ -63,51 +54,6 @@ const durations = {
   minute: 60 * 1000,
   second: 1000,
   millisecond: 1
-}
-function formatDuration (ms: number) {
-  const parts = [];
-
-  for (const [name, duration] of Object.entries(durations)) {
-    const count = Math.trunc(ms / duration);
-    if (count > 0) {
-      parts.push(`${count} ${name}${count !== 1 ? 's' : ''}`);
-      ms -= duration * count;
-    }
-  }
-
-  return parts.join(', ');
-}
-
-async function formatLogMessage(
-  client: Client,
-  user: User,
-  log: ModerationLog,
-  extraActionOptions: ExtraActionOptions,
-  _removePrivateInfo = false
-): Promise<string> {
-  let moderator: User | null = null;
-  try {
-    moderator = await client.users.fetch(log.moderator);
-  } catch (e) {
-    if (!(e instanceof DiscordAPIError)) throw e;
-  }
-
-  const reason =
-    log.reason.length <= 300 ? log.reason : log.reason.slice(0, 300) + '...';
-
-  return (
-    `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${
-      extraActionOptions.pastTense
-    }* ${log.userState.username}#${log.userState.discriminator} [\`${
-      user.id
-    }\`, <@${user.id}>]` + (
-      log.action === 'timeout' ?
-        ` *for ${log.timeoutDuration ? formatDuration(log.timeoutDuration) : 'an unknown amount of time'}*` : ''
-    ) +
-      `\n> ${reason}` +
-      ` (Rules: ${(await getRuleDescriptions(log.rule ?? [])).join(', ')}` +
-      (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
-  );
 }
 
 async function sendToSrNotifyChannel(
@@ -145,12 +91,7 @@ async function sendToLogChannel(
 ): Promise<void> {
   const SNOWFLAKE_MAP = await getSnowflakeMap();
 
-  const LOG_MESSAGE = await formatLogMessage(
-    client,
-    user,
-    log,
-    extraActionOptions
-  );
+  const LOG_EMBED = await EMBEDS.logNotice(client, user, log, extraActionOptions);
 
   const RULES = await getRules();
 
@@ -184,7 +125,7 @@ async function sendToLogChannel(
 
     try {
       await LOG_CHANNEL.send({
-        content: LOG_MESSAGE,
+        embeds: [LOG_EMBED],
         allowedMentions: { parse: [] },
       });
     } catch {
@@ -246,10 +187,6 @@ async function validateDuration(
       }
     }
 
-  if (ACTION === 'ban')
-    return [true, duration / 1000 | 0];
-  // https://stackoverflow.com/questions/7487977/using-bitwise-or-0-to-floor-a-number :trollface:
-
   return [true, duration];
 }
 
@@ -282,6 +219,7 @@ export interface ExtraActionOptions {
   sendNoticeFirst?: boolean;
   emoji: string;
   pastTense: string;
+  color: number
 }
 
 export interface OverrideActionOptions {
@@ -290,7 +228,7 @@ export interface OverrideActionOptions {
   'delete-message': boolean;
   'action': string;
   reason: string;
-  rule: string[];
+  rule: string;
   duration: string;
   'private-notes': string;
 }
@@ -359,7 +297,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Verified_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'verified' },
+        { emoji: ':white_check_mark:', pastTense: 'verified', color: Colors.Green },
       ],
       [
         {
@@ -373,7 +311,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.manageable) return false;
           return true;
         },
-        { emoji: ':warning:', pastTense: 'warned' },
+        { emoji: ':warning:', pastTense: 'warned', color: Colors.Yellow },
       ],
       [
         {
@@ -387,7 +325,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.moderatable) return false;
           return !!(await member.timeout(duration ?? null, reason));
         },
-        { emoji: ':mute:', pastTense: 'timed out' },
+        { emoji: ':mute:', pastTense: 'timed out', color: Colors.Orange },
       ],
       [
         {
@@ -401,7 +339,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.kickable) return false;
           return !!(await member.kick(reason));
         },
-        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked' },
+        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked', color: Colors.Red },
       ],
       [
         {
@@ -413,10 +351,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         },
         async (member, reason, seconds = 0) => {
           if (!member.bannable) return false;
-          // FIXME: `days` option not working..?
-          return !!(await member.ban({ reason, deleteMessageSeconds: seconds	}));
+          return !!(await member.ban({ reason, deleteMessageSeconds: seconds }));
         },
-        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned' },
+        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
       ],
       [
         {
@@ -431,7 +368,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to' },
+        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to', color: Colors.Green },
       ],
       [
         {
@@ -446,7 +383,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from' },
+        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from', color: Colors.Yellow },
       ],
     ];
 
@@ -550,7 +487,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         try {
           const bannedUser = await interaction.guild?.members.ban(USER.id, {
             reason: REASON,
-            deleteMessageSeconds: DURATION ?? 0,
+            deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0,
           });
           const LOG = await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,
@@ -564,10 +501,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           );
           await sendToLogChannel(interaction.client, USER, LOG, action[3]);
           await interaction.followUp({
-            content: `Banned out-of-server member ${
-              typeof bannedUser === 'object'
-                ? `${(bannedUser as User).tag} (${bannedUser.id})`
-                : bannedUser
+            content: `Banned out-of-server member ${typeof bannedUser === 'object'
+              ? `${(bannedUser as User).tag} (${bannedUser.id})`
+              : bannedUser
             }`,
           });
           return;

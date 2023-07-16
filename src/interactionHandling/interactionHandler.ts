@@ -1,7 +1,7 @@
 // imports
 import chalk from 'chalk';
 import type { Client, ClientUser, Interaction, ButtonBuilder, StringSelectMenuBuilder, ModalBuilder } from 'discord.js';
-import type { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import type { ActionRowBuilder, ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import {
@@ -23,7 +23,8 @@ type Command =
 type Componenent =
   ButtonBuilder |
   StringSelectMenuBuilder |
-  ModalBuilder;
+  ModalBuilder |
+  ActionRowBuilder<ButtonBuilder>;
 
 export default class InteractionHandler {
   public readonly client: Client;
@@ -86,7 +87,7 @@ export default class InteractionHandler {
     const EXISTING = this.components.find(i => {
       if ('type' in i.data && 'type' in component.data && 'custom_id' in i.data && 'custom_id' in component.data) {
         return (i.data.type === component.data.type &&
-        i.data.custom_id === component.data.custom_id);
+          i.data.custom_id === component.data.custom_id);
       }
       return false;
     });
