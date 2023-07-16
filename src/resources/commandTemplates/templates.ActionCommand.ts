@@ -1,7 +1,6 @@
 import {
   type Interaction,
   Client,
-  DiscordAPIError,
   GuildMember,
   Message,
   User,
@@ -56,49 +55,6 @@ const durations = {
   second: 1000,
   millisecond: 1
 }
-function formatDuration(ms: number) {
-  const parts = [];
-
-  for (const [name, duration] of Object.entries(durations)) {
-    const count = Math.trunc(ms / duration);
-    if (count > 0) {
-      parts.push(`${count} ${name}${count !== 1 ? 's' : ''}`);
-      ms -= duration * count;
-    }
-  }
-
-  return parts.join(', ');
-}
-
-async function formatLogMessage(
-  client: Client,
-  user: User,
-  log: ModerationLog,
-  extraActionOptions: ExtraActionOptions,
-  _removePrivateInfo = false
-): Promise<string> {
-  let moderator: User | null = null;
-  try {
-    moderator = await client.users.fetch(log.moderator);
-  } catch (e) {
-    if (!(e instanceof DiscordAPIError)) throw e;
-  }
-
-  const reason =
-    log.reason.length <= 300 ? log.reason : log.reason.slice(0, 300) + '...';
-
-  return (
-    `${extraActionOptions.emoji} ${moderator ?? 'Unknown'} *${extraActionOptions.pastTense
-    }* ${log.userState.username}#${log.userState.discriminator} [\`${user.id
-    }\`, <@${user.id}>]` + (
-      log.action === 'timeout' ?
-        ` *for ${log.duration ? formatDuration(log.duration) : 'an unknown amount of time'}*` : ''
-    ) +
-    `\n> ${reason}` +
-    ` (Rules: ${(await getRuleDescriptions(log.rule ?? ''))}` +
-    (log.privateNotes ? `, Private notes: *${log.privateNotes}*)` : ')')
-  );
-}
 
 async function sendToSrNotifyChannel(
   client: Client,
@@ -135,13 +91,6 @@ async function sendToLogChannel(
 ): Promise<void> {
   const SNOWFLAKE_MAP = await getSnowflakeMap();
 
-  const LOG_MESSAGE = await formatLogMessage(
-    client,
-    user,
-    log,
-    extraActionOptions
-  );
-
   const LOG_EMBED = await EMBEDS.logNotice(client, user, log, extraActionOptions);
 
   const RULES = await getRules();
@@ -176,7 +125,6 @@ async function sendToLogChannel(
 
     try {
       await LOG_CHANNEL.send({
-        content: LOG_MESSAGE,
         embeds: [LOG_EMBED],
         allowedMentions: { parse: [] },
       });
@@ -224,18 +172,18 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
-        case 'D':
-          duration += Number(TIME_GROUP.amount) * 86400000;
-          break;
-        case 'H':
-          duration += Number(TIME_GROUP.amount) * 3600000;
-          break;
-        case 'M':
-          duration += Number(TIME_GROUP.amount) * 60000;
-          break;
-        case 'S':
-          duration += Number(TIME_GROUP.amount) * 1000;
-          break;
+      case 'D':
+        duration += Number(TIME_GROUP.amount) * 86400000;
+        break;
+      case 'H':
+        duration += Number(TIME_GROUP.amount) * 3600000;
+        break;
+      case 'M':
+        duration += Number(TIME_GROUP.amount) * 60000;
+        break;
+      case 'S':
+        duration += Number(TIME_GROUP.amount) * 1000;
+        break;
       }
     }
 
@@ -556,7 +504,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             content: `Banned out-of-server member ${typeof bannedUser === 'object'
               ? `${(bannedUser as User).tag} (${bannedUser.id})`
               : bannedUser
-              }`,
+            }`,
           });
           return;
         } catch (e) {
