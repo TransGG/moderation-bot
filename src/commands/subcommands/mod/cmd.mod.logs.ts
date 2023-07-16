@@ -1,6 +1,7 @@
 import { SlashCommandUserOption } from '@discordjs/builders';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import EMBEDS from '@resources/embeds.js';
+import BUTTONS from '@resources/buttons.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('logs')
@@ -13,11 +14,14 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isCommand()) return;
     await interaction.deferReply({ ephemeral: true });
+    BUTTONS.modLogActionRow.components.forEach(i => _interactionHandler.addComponent(i));
+
+
 
     await interaction.followUp({
       embeds: [await EMBEDS.moderationLogs(interaction.options.getUser('user', true))],
       components: [
-        // TODO: Buttons
+        BUTTONS.modLogActionRow
       ],
       ephemeral: true
     });
