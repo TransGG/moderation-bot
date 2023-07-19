@@ -349,9 +349,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         async (member) => {
           return member.bannable;
         },
-        async (member, reason, seconds = 0) => {
+        async (member, reason, DURATION = 0) => {
           if (!member.bannable) return false;
-          return !!(await member.ban({ reason, deleteMessageSeconds: seconds }));
+          return !!(await member.ban({ reason, deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0 }));
         },
         { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
       ],
