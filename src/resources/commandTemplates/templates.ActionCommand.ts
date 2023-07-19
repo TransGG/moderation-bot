@@ -172,20 +172,28 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
+      case 'M':
+	duration += Number(TIME_GROUP.amount) * durations.week;
+      	break;
       case 'D':
-        duration += Number(TIME_GROUP.amount) * 86400000;
+        duration += Number(TIME_GROUP.amount) * durations.day;
         break;
       case 'H':
-        duration += Number(TIME_GROUP.amount) * 3600000;
+        duration += Number(TIME_GROUP.amount) * durations.hour;
         break;
       case 'M':
-        duration += Number(TIME_GROUP.amount) * 60000;
+        duration += Number(TIME_GROUP.amount) * durations.minute;
         break;
       case 'S':
-        duration += Number(TIME_GROUP.amount) * 1000;
+        duration += Number(TIME_GROUP.amount) * durations.second;
         break;
       }
     }
+
+  if (ACTION === 'ban')
+    duration = Math.min(duration, durations.week); // Bans can delete messages for no longer than 1 week
+  else if (ACTION === 'timeout')
+    duration = Math.min(duration, 28 * durations.day); // Timeouts can be for no longer than 28 days
 
   return [true, duration];
 }
@@ -349,9 +357,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         async (member) => {
           return member.bannable;
         },
-        async (member, reason, seconds = 0) => {
+        async (member, reason, DURATION = 0) => {
           if (!member.bannable) return false;
-          return !!(await member.ban({ reason, deleteMessageSeconds: seconds }));
+          return !!(await member.ban({ reason, deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0 }));
         },
         { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
       ],
@@ -639,7 +647,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       .addStringOption(
         new SlashCommandStringOption()
           .setName('duration')
-          .setDescription('Duration of the timeout, if the action is a timeout')
+          .setDescription('Duration of the timeout for timeouts or duration to delete past messages for bans')
           .setRequired(false)
       )
       .addStringOption(
