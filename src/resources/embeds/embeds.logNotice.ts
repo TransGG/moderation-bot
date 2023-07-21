@@ -87,7 +87,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     }]);
   }
 
-  EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
+  if (log.messageInfo) EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
 
   if (log.messageInfo?.content) {
     EMBED.addFields([{

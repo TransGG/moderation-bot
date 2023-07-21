@@ -138,7 +138,7 @@ async function validateDuration(
   interaction: Interaction,
   options: Partial<OverrideActionOptions>,
 ): Promise<[boolean, number | undefined]> {
-  if (!interaction.isChatInputCommand()) return [false, undefined];
+  if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) return [false, undefined];
   // duration must be specific only if the action is a timeout
   const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
@@ -172,9 +172,9 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
-      case 'M':
-	duration += Number(TIME_GROUP.amount) * durations.week;
-      	break;
+      case 'W':
+        duration += Number(TIME_GROUP.amount) * durations.week;
+        break;
       case 'D':
         duration += Number(TIME_GROUP.amount) * durations.day;
         break;
@@ -424,6 +424,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       getBasicOptions(interaction, options);
 
     const [IS_VALID_DURATION, DURATION] = await validateDuration(interaction, options);
+
     if (!IS_VALID_DURATION) return;
 
     let message: Message | undefined;
@@ -445,6 +446,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         return;
       }
     }
+
 
     const USER = message
       ? message.author
@@ -488,10 +490,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
 
-    if (DELETE_MESSAGE && message?.deletable) message.delete();
+    if (DELETE_MESSAGE && message?.deletable) await message.delete();
 
     if (!member) {
       if (ACTION === 'ban') {
+
         try {
           const bannedUser = await interaction.guild?.members.ban(USER.id, {
             reason: REASON,
@@ -551,6 +554,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       message
     );
 
+
     if (!(await action[1](member))) {
       await interaction.followUp({
         content:
@@ -573,7 +577,6 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
     if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
-
   };
 
   private addUserParameters() {
