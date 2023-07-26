@@ -4,6 +4,7 @@ const config: customisations = {
   Moderation_Logs_Per_Page: 8,
   Daily_Action_Limits: {
     verify: 30,
+    add_note: 30,
     warn: 30,
     timeout: 30,
     kick: 30,
