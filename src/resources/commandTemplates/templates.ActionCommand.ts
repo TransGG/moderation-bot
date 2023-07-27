@@ -310,7 +310,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Verified_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'verified', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Verified', color: Colors.Green },
       ],
       [
         {
@@ -326,7 +326,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         {
           noNotice: true,
           emoji: ':pencil:',
-          pastTense: 'added a note to',
+          pastTense: 'Added a note to',
           color: Colors.Yellow,
         },
       ],
@@ -342,7 +342,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.manageable) return false;
           return true;
         },
-        { emoji: ':warning:', pastTense: 'warned', color: Colors.Yellow },
+        { emoji: ':warning:', pastTense: 'Warned', color: Colors.Yellow },
       ],
       [
         {
@@ -356,7 +356,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.moderatable) return false;
           return !!(await member.timeout(duration ?? null, reason));
         },
-        { emoji: ':mute:', pastTense: 'timed out', color: Colors.Orange },
+        { emoji: ':mute:', pastTense: 'Timed out', color: Colors.Orange },
       ],
       [
         {
@@ -370,7 +370,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.kickable) return false;
           return !!(await member.kick(reason));
         },
-        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked', color: Colors.Red },
+        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'Kicked', color: Colors.Red },
       ],
       [
         {
@@ -384,7 +384,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.bannable) return false;
           return !!(await member.ban({ reason, deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0 }));
         },
-        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
+        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'Banned', color: 0xe63624 },
       ],
       [
         {
@@ -399,7 +399,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Gave the mature role to', color: Colors.Green },
       ],
       [
         {
@@ -414,7 +414,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from', color: Colors.Yellow },
+        { emoji: ':white_check_mark:', pastTense: 'Removed the mature role from', color: Colors.Yellow },
       ],
     ];
 
@@ -617,7 +617,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       return;
     }
 
-    if (!action[3].sendNoticeFirst && !action[3].noNotice) await sendNotice(USER, LOG, interaction);
+    if (!action[3].sendNoticeFirst && !action[3].noNotice) {
+      await sendNotice(USER, LOG, interaction);
+    } else if (action[3].noNotice) {
+      await interaction.followUp(`Successfully added note for ${member}`);
+    }
   };
 
   private addUserParameters() {
