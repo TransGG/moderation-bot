@@ -617,10 +617,13 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       return;
     }
 
-    if (!action[3].sendNoticeFirst && !action[3].noNotice) {
+    if (action[3].sendNoticeFirst && action[3].noNotice) {
+      await interaction.followUp('Someone messed up notice configurations for this action, so no notice was sent.')
+      throw Error('sendNoticeFirst and noNotice mismatch');
+    } else if (!action[3].sendNoticeFirst && !action[3].noNotice) {
       await sendNotice(USER, LOG, interaction);
     } else if (action[3].noNotice) {
-      await interaction.followUp(`Successfully added note for ${member}`);
+      await interaction.followUp(`Successfully ${action[3].pastTense} ${member} without sending a notice.`);
     }
   };
 

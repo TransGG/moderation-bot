@@ -16,6 +16,7 @@ const config: customisations = {
   Staff_Cant_Punish_Staff_Restriction: {
     verify: false,
     add_mature: false,
+    add_note: false,
   }
 };
 
