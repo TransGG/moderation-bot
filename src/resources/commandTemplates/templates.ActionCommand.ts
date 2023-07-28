@@ -96,10 +96,8 @@ async function sendToLogChannel(
   const RULES = await getRules();
 
   const LOG_CHANNEL_CATEGORIES = [log.action];
-  for (const RULE of log.rule ?? []) {
-    for (const CATEGORY of RULES[RULE]?.extraCategories ?? [])
-      LOG_CHANNEL_CATEGORIES.push(CATEGORY);
-  }
+  for (const CATEGORY of RULES[log.rule]?.extraCategories ?? [])
+    LOG_CHANNEL_CATEGORIES.push(String(CATEGORY));
 
   const LOG_CHANNELS = LOG_CHANNEL_CATEGORIES.flatMap((CATEGORY) => {
     return (
@@ -225,6 +223,7 @@ async function sendNotice(
 
 export interface ExtraActionOptions {
   sendNoticeFirst?: boolean;
+  noNotice?: boolean;
   emoji: string;
   pastTense: string;
   color: number
@@ -249,6 +248,12 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       APIApplicationCommandOptionChoice<string>,
       (member: GuildMember) => Promise<boolean>,
       (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember) => Promise<boolean>,
       ExtraActionOptions
     ],
     [
@@ -305,7 +310,25 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Verified_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'verified', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Verified', color: Colors.Green },
+      ],
+      [
+        {
+          name: 'Add Note',
+          value: 'add_note',
+        },
+        async (member) => {
+          return Boolean(await member.fetch());
+        },
+        async (member) => {
+          return Boolean(await member.fetch());
+        },
+        {
+          noNotice: true,
+          emoji: ':pencil:',
+          pastTense: 'Added a note to',
+          color: Colors.Yellow,
+        },
       ],
       [
         {
@@ -319,7 +342,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.manageable) return false;
           return true;
         },
-        { emoji: ':warning:', pastTense: 'warned', color: Colors.Yellow },
+        { emoji: ':warning:', pastTense: 'Warned', color: Colors.Yellow },
       ],
       [
         {
@@ -333,7 +356,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.moderatable) return false;
           return !!(await member.timeout(duration ?? null, reason));
         },
-        { emoji: ':mute:', pastTense: 'timed out', color: Colors.Orange },
+        { emoji: ':mute:', pastTense: 'Timed out', color: Colors.Orange },
       ],
       [
         {
@@ -347,7 +370,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.kickable) return false;
           return !!(await member.kick(reason));
         },
-        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked', color: Colors.Red },
+        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'Kicked', color: Colors.Red },
       ],
       [
         {
@@ -361,7 +384,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.bannable) return false;
           return !!(await member.ban({ reason, deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0 }));
         },
-        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
+        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'Banned', color: 0xe63624 },
       ],
       [
         {
@@ -376,7 +399,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Gave the mature role to', color: Colors.Green },
       ],
       [
         {
@@ -391,7 +414,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from', color: Colors.Yellow },
+        { emoji: ':white_check_mark:', pastTense: 'Removed the mature role from', color: Colors.Yellow },
       ],
     ];
 
@@ -528,6 +551,24 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return;
         }
       }
+
+      if (ACTION === 'add_note') {
+        const LOG = await COLLECTIONS.UserLog.newModLog(
+          interaction.user.id,
+          USER,
+          ACTION,
+          REASON,
+          RULE,
+          PRIVATE_NOTES ?? undefined,
+          DURATION,
+          message
+        )
+        await sendToLogChannel(interaction.client, USER, LOG, action[3]);
+
+        await interaction.followUp(`Successfully logged note for out-of-server user ${USER}`);
+        return;
+      }
+
       await interaction.followUp({
         content: 'User not found in this server',
         ephemeral: true,
@@ -565,7 +606,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
     await sendToLogChannel(interaction.client, USER, LOG, action[3]);
-    if (action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+    if (action[3].sendNoticeFirst && !action[3].noNotice) await sendNotice(USER, LOG, interaction);
 
     if (!(await action[2](member, REASON, DURATION))) {
       await interaction.followUp({
@@ -576,7 +617,14 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       return;
     }
 
-    if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+    if (action[3].sendNoticeFirst && action[3].noNotice) {
+      await interaction.followUp('Someone messed up notice configurations for this action, so no notice was sent.')
+      throw Error('sendNoticeFirst and noNotice mismatch');
+    } else if (!action[3].sendNoticeFirst && !action[3].noNotice) {
+      await sendNotice(USER, LOG, interaction);
+    } else if (action[3].noNotice) {
+      await interaction.followUp(`Successfully ${action[3].pastTense} ${member} without sending a notice.`);
+    }
   };
 
   private addUserParameters() {
