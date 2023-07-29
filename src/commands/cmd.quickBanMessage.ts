@@ -11,6 +11,7 @@ export default new ResponsiveContextMenuCommandBuilder()
   .setResponse(async (interaction, _interactionHandler, _command) => {
 
     if (!interaction.isMessageContextMenuCommand()) return;
+    await interaction.deferReply({ ephemeral: true })
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const QUICK_BAN_ALLOWED =
@@ -53,7 +54,7 @@ export default new ResponsiveContextMenuCommandBuilder()
       return;
     }
 
-    ModMessage.response(interaction, _interactionHandler, ModMessage, {
+    await ModMessage.response(interaction, _interactionHandler, ModMessage, {
       user: GUILD_MEMBER.user,
       'message-id': interaction.targetMessage.id,
       'delete-message': true,

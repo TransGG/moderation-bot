@@ -39,8 +39,8 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     (log.messageInfo?.content?.length as number) <= 1020 ? log.messageInfo?.content :
       log.messageInfo?.content.slice(0, 1015) + '...';
 
-  const title = `${extraActionOptions.emoji} ${log.userState.username}${log.userState.discriminator === '0' ? ''
-    : '#' + log.userState.discriminator} was ${extraActionOptions.pastTense}`;
+  const title = `${extraActionOptions.emoji} ${extraActionOptions.pastTense} ${log.userState.username}${log.userState.discriminator === '0' ? ''
+    : '#' + log.userState.discriminator}`;
 
   const desc = `> <@${user.id}> (\`${user.id}\`)`;
   const duration = log.duration ? formatDuration(log.duration) : '';
@@ -87,7 +87,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     }]);
   }
 
-  EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
+  if (log.messageInfo) EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
 
   if (log.messageInfo?.content) {
     EMBED.addFields([{

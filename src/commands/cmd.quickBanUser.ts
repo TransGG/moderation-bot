@@ -9,7 +9,6 @@ export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('Quick Ban User')
   .setResponse(async (interaction, _interactionHandler, _command) => {
-
     if (!interaction.isUserContextMenuCommand()) return;
     await interaction.deferReply({ ephemeral: true })
 
@@ -45,7 +44,7 @@ export default new ResponsiveContextMenuCommandBuilder()
     }
 
     const JOINED_AT = GUILD_MEMBER.joinedAt;
-    console.log(JOINED_AT);
+
 
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
       await interaction.reply({
@@ -55,7 +54,7 @@ export default new ResponsiveContextMenuCommandBuilder()
       return;
     }
 
-    ModUser.response(interaction, _interactionHandler, ModUser, {
+    await ModUser.response(interaction, _interactionHandler, ModUser, {
       user: GUILD_MEMBER.user,
       'action': 'ban',
       reason: 'Banned for breaking the rules in under 7 days of joining',

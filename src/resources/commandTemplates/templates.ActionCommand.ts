@@ -96,10 +96,8 @@ async function sendToLogChannel(
   const RULES = await getRules();
 
   const LOG_CHANNEL_CATEGORIES = [log.action];
-  for (const RULE of log.rule ?? []) {
-    for (const CATEGORY of RULES[RULE]?.extraCategories ?? [])
-      LOG_CHANNEL_CATEGORIES.push(CATEGORY);
-  }
+  for (const CATEGORY of RULES[log.rule]?.extraCategories ?? [])
+    LOG_CHANNEL_CATEGORIES.push(String(CATEGORY));
 
   const LOG_CHANNELS = LOG_CHANNEL_CATEGORIES.flatMap((CATEGORY) => {
     return (
@@ -138,7 +136,7 @@ async function validateDuration(
   interaction: Interaction,
   options: Partial<OverrideActionOptions>,
 ): Promise<[boolean, number | undefined]> {
-  if (!interaction.isChatInputCommand()) return [false, undefined];
+  if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) return [false, undefined];
   // duration must be specific only if the action is a timeout
   const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
@@ -172,20 +170,28 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
+      case 'W':
+        duration += Number(TIME_GROUP.amount) * durations.week;
+        break;
       case 'D':
-        duration += Number(TIME_GROUP.amount) * 86400000;
+        duration += Number(TIME_GROUP.amount) * durations.day;
         break;
       case 'H':
-        duration += Number(TIME_GROUP.amount) * 3600000;
+        duration += Number(TIME_GROUP.amount) * durations.hour;
         break;
       case 'M':
-        duration += Number(TIME_GROUP.amount) * 60000;
+        duration += Number(TIME_GROUP.amount) * durations.minute;
         break;
       case 'S':
-        duration += Number(TIME_GROUP.amount) * 1000;
+        duration += Number(TIME_GROUP.amount) * durations.second;
         break;
       }
     }
+
+  if (ACTION === 'ban')
+    duration = Math.min(duration, durations.week); // Bans can delete messages for no longer than 1 week
+  else if (ACTION === 'timeout')
+    duration = Math.min(duration, 28 * durations.day); // Timeouts can be for no longer than 28 days
 
   return [true, duration];
 }
@@ -217,6 +223,7 @@ async function sendNotice(
 
 export interface ExtraActionOptions {
   sendNoticeFirst?: boolean;
+  noNotice?: boolean;
   emoji: string;
   pastTense: string;
   color: number
@@ -241,6 +248,12 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       APIApplicationCommandOptionChoice<string>,
       (member: GuildMember) => Promise<boolean>,
       (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember) => Promise<boolean>,
       ExtraActionOptions
     ],
     [
@@ -297,7 +310,25 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Verified_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'verified', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Verified', color: Colors.Green },
+      ],
+      [
+        {
+          name: 'Add Note',
+          value: 'add_note',
+        },
+        async (member) => {
+          return Boolean(await member.fetch());
+        },
+        async (member) => {
+          return Boolean(await member.fetch());
+        },
+        {
+          noNotice: true,
+          emoji: ':pencil:',
+          pastTense: 'Added a note to',
+          color: Colors.Yellow,
+        },
       ],
       [
         {
@@ -311,7 +342,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.manageable) return false;
           return true;
         },
-        { emoji: ':warning:', pastTense: 'warned', color: Colors.Yellow },
+        { emoji: ':warning:', pastTense: 'Warned', color: Colors.Yellow },
       ],
       [
         {
@@ -325,7 +356,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.moderatable) return false;
           return !!(await member.timeout(duration ?? null, reason));
         },
-        { emoji: ':mute:', pastTense: 'timed out', color: Colors.Orange },
+        { emoji: ':mute:', pastTense: 'Timed out', color: Colors.Orange },
       ],
       [
         {
@@ -339,7 +370,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           if (!member.kickable) return false;
           return !!(await member.kick(reason));
         },
-        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'kicked', color: Colors.Red },
+        { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'Kicked', color: Colors.Red },
       ],
       [
         {
@@ -349,11 +380,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         async (member) => {
           return member.bannable;
         },
-        async (member, reason, seconds = 0) => {
+        async (member, reason, DURATION = 0) => {
           if (!member.bannable) return false;
-          return !!(await member.ban({ reason, deleteMessageSeconds: seconds }));
+          return !!(await member.ban({ reason, deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0 }));
         },
-        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'banned', color: 0xe63624 },
+        { sendNoticeFirst: true, emoji: ':hammer:', pastTense: 'Banned', color: 0xe63624 },
       ],
       [
         {
@@ -368,7 +399,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.add(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'gave the mature role to', color: Colors.Green },
+        { emoji: ':white_check_mark:', pastTense: 'Gave the mature role to', color: Colors.Green },
       ],
       [
         {
@@ -383,7 +414,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           const SNOWFLAKE_MAP = await getSnowflakeMap();
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
-        { emoji: ':white_check_mark:', pastTense: 'removed the mature role from', color: Colors.Yellow },
+        { emoji: ':white_check_mark:', pastTense: 'Removed the mature role from', color: Colors.Yellow },
       ],
     ];
 
@@ -416,6 +447,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       getBasicOptions(interaction, options);
 
     const [IS_VALID_DURATION, DURATION] = await validateDuration(interaction, options);
+
     if (!IS_VALID_DURATION) return;
 
     let message: Message | undefined;
@@ -437,6 +469,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         return;
       }
     }
+
 
     const USER = message
       ? message.author
@@ -480,10 +513,11 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
 
-    if (DELETE_MESSAGE && message?.deletable) message.delete();
+    if (DELETE_MESSAGE && message?.deletable) await message.delete();
 
     if (!member) {
       if (ACTION === 'ban') {
+
         try {
           const bannedUser = await interaction.guild?.members.ban(USER.id, {
             reason: REASON,
@@ -517,6 +551,24 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return;
         }
       }
+
+      if (ACTION === 'add_note') {
+        const LOG = await COLLECTIONS.UserLog.newModLog(
+          interaction.user.id,
+          USER,
+          ACTION,
+          REASON,
+          RULE,
+          PRIVATE_NOTES ?? undefined,
+          DURATION,
+          message
+        )
+        await sendToLogChannel(interaction.client, USER, LOG, action[3]);
+
+        await interaction.followUp(`Successfully logged note for out-of-server user ${USER}`);
+        return;
+      }
+
       await interaction.followUp({
         content: 'User not found in this server',
         ephemeral: true,
@@ -543,6 +595,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       message
     );
 
+
     if (!(await action[1](member))) {
       await interaction.followUp({
         content:
@@ -553,7 +606,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
     await sendToLogChannel(interaction.client, USER, LOG, action[3]);
-    if (action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
+    if (action[3].sendNoticeFirst && !action[3].noNotice) await sendNotice(USER, LOG, interaction);
 
     if (!(await action[2](member, REASON, DURATION))) {
       await interaction.followUp({
@@ -564,8 +617,14 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       return;
     }
 
-    if (!action[3].sendNoticeFirst) await sendNotice(USER, LOG, interaction);
-
+    if (action[3].sendNoticeFirst && action[3].noNotice) {
+      await interaction.followUp('Someone messed up notice configurations for this action, so no notice was sent.')
+      throw Error('sendNoticeFirst and noNotice mismatch');
+    } else if (!action[3].sendNoticeFirst && !action[3].noNotice) {
+      await sendNotice(USER, LOG, interaction);
+    } else if (action[3].noNotice) {
+      await interaction.followUp(`Successfully ${action[3].pastTense} ${member} without sending a notice.`);
+    }
   };
 
   private addUserParameters() {
@@ -639,7 +698,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       .addStringOption(
         new SlashCommandStringOption()
           .setName('duration')
-          .setDescription('Duration of the timeout, if the action is a timeout')
+          .setDescription('Duration of the timeout for timeouts or duration to delete past messages for bans')
           .setRequired(false)
       )
       .addStringOption(
