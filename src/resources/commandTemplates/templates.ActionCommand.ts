@@ -296,6 +296,18 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       (member: GuildMember, reason: string) => Promise<boolean>,
       ExtraActionOptions
     ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
+    [
+      APIApplicationCommandOptionChoice<string>,
+      (member: GuildMember) => Promise<boolean>,
+      (member: GuildMember, reason: string) => Promise<boolean>,
+      ExtraActionOptions
+    ],
   ] = [
       [
         {
@@ -415,6 +427,36 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           return !!(await member.roles.remove(SNOWFLAKE_MAP.Mature_Roles, reason));
         },
         { emoji: ':white_check_mark:', pastTense: 'Removed the mature role from', color: Colors.Yellow },
+      ],
+      [
+        {
+          name: 'Disable image sending',
+          value: 'disable_images',
+        },
+        async (member) => {
+          return member.manageable;
+        },
+        async (member, reason) => {
+          if (!member.manageable) return false;
+          const SNOWFLAKE_MAP = await getSnowflakeMap();
+          return !!(await member.roles.add(SNOWFLAKE_MAP.Image_Ban_Roles, reason));
+        },
+        { emoji: ':white_check_mark:', pastTense: 'Disabled images for', color: Colors.Yellow },
+      ],
+      [
+        {
+          name: 'Enable image sending',
+          value: 'enable_images',
+        },
+        async (member) => {
+          return member.manageable;
+        },
+        async (member, reason) => {
+          if (!member.manageable) return false;
+          const SNOWFLAKE_MAP = await getSnowflakeMap();
+          return !!(await member.roles.remove(SNOWFLAKE_MAP.Image_Ban_Roles, reason));
+        },
+        { emoji: ':white_check_mark:', pastTense: 'Enabled images for', color: Colors.Green },
       ],
     ];
 

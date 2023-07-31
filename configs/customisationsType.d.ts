@@ -9,6 +9,8 @@ export default interface customisations {
     ban: number,
     add_mature: number,
     remove_mature: number,
+    disable_images: number,
+    enable_images: number,
     default: number
   },
   Staff_Cant_Punish_Staff_Restriction: {
@@ -19,6 +21,8 @@ export default interface customisations {
     kick?: boolean,
     ban?: boolean,
     add_mature?: boolean,
-    remove_mature?: boolean
+    remove_mature?: boolean,
+    disable_images?: boolean,
+    enable_images?: boolean,
   },
 }
