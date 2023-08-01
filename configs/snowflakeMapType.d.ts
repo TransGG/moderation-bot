@@ -57,6 +57,11 @@ export default interface snowflakeMap {
   Mature_Roles: string[];
 
   /**
+   * A list of roles that deny members from sending images
+   */
+  Image_Ban_Roles: string[];
+
+  /**
    * A channel used in user-facing error messages to get support at
    */
   Support_Channel: string;
