@@ -23,7 +23,7 @@ export default new ResponsiveContextMenuCommandBuilder()
           undefined;
 
     if (!QUICK_BAN_ALLOWED) {
-      await interaction.reply({
+      await interaction.followUp({
         content: QUICK_BAN_ALLOWED === false ?
           'You are not allowed to quick ban users, please DM a Sr. Staff member about this' :
           'Failed to process command, please DM a bot developer about this',
@@ -37,7 +37,7 @@ export default new ResponsiveContextMenuCommandBuilder()
     const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
 
     if (!GUILD_MEMBER) {
-      await interaction.reply({
+      await interaction.followUp({
         content: 'Failed to find the member to be banned, please check that the member is still in the server and use the normal ban command instead',
         ephemeral: true
       });
@@ -47,7 +47,7 @@ export default new ResponsiveContextMenuCommandBuilder()
     const JOINED_AT = GUILD_MEMBER.joinedAt;
 
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
-      await interaction.reply({
+      await interaction.followUp({
         content: 'This member joined the server too long ago to be quick banned, please use the normal ban command instead',
         ephemeral: true
       });
