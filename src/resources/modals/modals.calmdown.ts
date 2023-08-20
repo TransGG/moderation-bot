@@ -6,6 +6,8 @@ import { TextInputStyle } from 'discord-api-types/v10';
 import chalk from 'chalk';
 import { getSnowflakeMap } from '@utils.js';
 
+const lockedPreCalmdownSeconds = 15; // Could probably be an option in customisations config?
+const calmdownSeconds = 10 * 60; // TODO: should probably be modifiable when the command is run
 
 async function revertSlowmode(channel: TextChannel) {
   await channel.edit({ rateLimitPerUser: channel.rateLimitPerUser - 5 });
@@ -54,12 +56,12 @@ export default new ResponsiveModal()
 
         // Only does this after the 15 seconds of lockdown
         await slowmode_channel.edit({ rateLimitPerUser: slowmode_channel.rateLimitPerUser + 5 });
-        setTimeout(revertSlowmode, 30000, slowmode_channel);
+        setTimeout(revertSlowmode, calmdownSeconds * 1000, slowmode_channel);
 
         await slowmode_channel.send(`The ${slowmode_channel.rateLimitPerUser} second slowmode ` +
-          `will be lifted ${time((Date.now() / 1000 | 0) + 30, 'R')}`);
+          `will be lifted ${time((Date.now() / 1000 | 0) + calmdownSeconds, 'R')}`);
 
-      }, 15000);
+      }, lockedPreCalmdownSeconds * 1000);
 
     } catch (e) {
       console.error(chalk.redBright(e));
@@ -89,7 +91,7 @@ export default new ResponsiveModal()
             })
             .setColor(Colors.Red)
             .setDescription(`> ${mod_message.split('\n').join('\n> ')}` + // add quotes
-              `\n\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + 15, 'R')}`) // relative timestamp
+              `\n\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + lockedPreCalmdownSeconds, 'R')}`) // relative timestamp
         ]
       });
     } else {
@@ -102,7 +104,7 @@ export default new ResponsiveModal()
               iconURL: String(interaction.client.user.avatarURL())
             })
             .setColor(Colors.Red)
-            .setDescription(`\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + 15, 'R')}`)
+            .setDescription(`\nYou will be able to chat (with a slowmode) ${time((Date.now() / 1000 | 0) + lockedPreCalmdownSeconds, 'R')}`)
         ]
       });
     }
