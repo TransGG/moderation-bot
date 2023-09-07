@@ -9,7 +9,6 @@ const config: snowflakeMap = {
   Sr_Notify_Channel: '',
   Mod_Logs_Channels: {},
   Verified_Roles: [],
-  Mature_Roles: [],
   Image_Ban_Roles: [],
   Support_Channel: '',
   Mod_Editable_Roles: {}

@@ -6,6 +6,7 @@ import userReport from './embeds/embeds.userReport.js';
 import moderationLogs from './embeds/embeds.moderationLogs.js';
 import moderationNotice from './embeds/embeds.moderationNotice.js';
 import calmdownNotice from './embeds/embeds.calmdownNotice.js';
+import editRoleNotice from './embeds/embeds.editRoleNotice.js';
 import logNotice from './embeds/embeds.logNotice.js';
 
 
@@ -15,6 +16,7 @@ const EMBEDS = {
   moderationLogs,
   moderationNotice,
   calmdownNotice,
+  editRoleNotice,
   logNotice
 };
 
