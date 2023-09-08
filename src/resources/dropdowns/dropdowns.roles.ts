@@ -29,20 +29,24 @@ export default async function modEditRoleRow(roles: RoleInfo[], member: GuildMem
 
           let changelog = '';
 
-          roles.forEach(role => {
-            if (role.enabled && !interaction.values.includes(role.role)) removeRole(role);
-            if (!role.enabled && interaction.values.includes(role.role)) addRole(role);
-          })
+	  let memberRoles = new Set(member.roles.cache.keys());
+
+          for (const role of roles) {
+            if (memberRoles.has(role.role) && !interaction.values.includes(role.role)) removeRole(role);
+	    if (!memberRoles.has(role.role) && interaction.values.includes(role.role)) addRole(role);
+          }
 
           function addRole(role: RoleInfo) {
-            member.roles.add(role.role, `Mod Edit Roles - ${interaction.user.id}`);
+            memberRoles.add(role.role);
             changelog += `+ ${role.label}\n`;
           }
 
           function removeRole(role: RoleInfo) {
-            member.roles.remove(role.role, `Mod Edit Roles - ${interaction.user.id}`);
+            memberRoles.delete(role.role);
             changelog += `- ${role.label}\n`;
           }
+
+	  await member.roles.set([...memberRoles], `Mod Edit Roles - ${interaction.user.id}`);
 
           await interaction.update({
             content: `Roles updated for ${userMention(member.id)}\n\`\`\`diff\n${changelog}\`\`\``,
