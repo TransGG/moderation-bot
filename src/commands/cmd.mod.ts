@@ -7,4 +7,5 @@ export default new ResponsiveSlashCommandBuilder()
   .setDefaultMemberPermissions('0')
   .addSubcommand((await import(t`./subcommands/mod/cmd.mod.user.js`)).default)
   .addSubcommand((await import(t`./subcommands/mod/cmd.mod.message.js`)).default)
-  .addSubcommand((await import(t`./subcommands/mod/cmd.mod.logs.js`)).default);
+  .addSubcommand((await import(t`./subcommands/mod/cmd.mod.logs.js`)).default)
+  .addSubcommand((await import(t`./subcommands/mod/cmd.mod.roles.js`)).default);

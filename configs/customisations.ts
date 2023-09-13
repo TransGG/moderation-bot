@@ -9,17 +9,11 @@ const config: customisations = {
     timeout: 30,
     kick: 30,
     ban: 30,
-    add_mature: 30,
-    remove_mature: 30,
-    disable_images: 30,
-    enable_images: 30,
     default: 30
   },
   Staff_Cant_Punish_Staff_Restriction: {
     verify: false,
-    add_mature: false,
     add_note: false,
-    enable_images: false
   }
 };
 

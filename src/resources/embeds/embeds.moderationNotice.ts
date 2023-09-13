@@ -12,10 +12,6 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     case 'kick': return 'kicked';
     case 'ban': return 'banned';
     case 'verify': return 'verified';
-    case 'add_mature': return 'given the mature role';
-    case 'remove_mature': return 'removed from the mature role';
-    case 'enable_images': return 'allowed to send images';
-    case 'disable_images': return 'denied from sending images';
     default: return 'warned';
     }
   })();
@@ -28,7 +24,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
 
   const RULES = await getRules();
 
-  if (log.rule && (log.action !== 'verify' && log.action !== 'add_mature' && log.action !== 'enable_images')) EMBED.addFields([{
+  if (log.rule && (log.action !== 'verify')) EMBED.addFields([{
     name: `Rule ${log.rule}`,
     value: <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
     inline: true
