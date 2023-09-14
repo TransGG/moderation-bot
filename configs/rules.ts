@@ -50,7 +50,7 @@ const config: rules = {
   },
   triggers: {
     ruleNumber: 7,
-    shortDesc: 'Disrespecting triggers / [UNFINISHED]',
+    shortDesc: 'Disrespecting triggers / Disregarding responsibility',
     description:
       '**Be considerate of others\' triggers.** We understand that with such a diverse and large community, it\'s not always feasible to avoid every trigger. Nevertheless, please make an effort to acknowledge and respect others\' triggers, refrain from attempting to change their mind or prove them wrong. **Remember, as this large community, your triggers are also your responsibility too.** If a chat topic triggers you (unless listed below), consider stepping back and removing yourself from the situation until the conversation topic changes.\n\n> ***Note:*** *You can hide messages with triggering content by using a double upright slash:* TW ||trigger|| - ||content||. For instance, "TW ||spiders|| - ||Check out these [Spider Images]||."',
     extended: [],
