@@ -28,12 +28,11 @@ export default async function modEditRoleRow(roles: RoleInfo[], member: GuildMem
           if (!interaction.isStringSelectMenu()) return;
 
           let changelog = '';
-
-	  let memberRoles = new Set(member.roles.cache.keys());
+          const memberRoles = new Set(member.roles.cache.keys());
 
           for (const role of roles) {
             if (memberRoles.has(role.role) && !interaction.values.includes(role.role)) removeRole(role);
-	    if (!memberRoles.has(role.role) && interaction.values.includes(role.role)) addRole(role);
+            if (!memberRoles.has(role.role) && interaction.values.includes(role.role)) addRole(role);
           }
 
           function addRole(role: RoleInfo) {
@@ -46,7 +45,7 @@ export default async function modEditRoleRow(roles: RoleInfo[], member: GuildMem
             changelog += `- ${role.label}\n`;
           }
 
-	  await member.roles.set([...memberRoles], `Mod Edit Roles - ${interaction.user.id}`);
+          await member.roles.set([...memberRoles], `Mod Edit Roles - ${interaction.user.id}`);
 
           await interaction.update({
             content: `Roles updated for ${userMention(member.id)}\n\`\`\`diff\n${changelog}\`\`\``,
