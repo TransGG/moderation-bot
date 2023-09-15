@@ -26,7 +26,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
 
   if (log.rule && (log.action !== 'verify')) EMBED.addFields([{
     name: `Rule ${log.rule}`,
-    value: <string>RULES[<string>log.rule[0]]?.description, // FIXME: breaks with multiple rules
+    value: <string>RULES[<string>log.rule[0]]?.description ?? <string>RULES[<string>log.rule]?.description , // FIXME: breaks with multiple rules
     inline: true
   }]);
 
