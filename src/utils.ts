@@ -13,6 +13,7 @@ import type advancedType from '../configs/advancedType';
 import type coreType from '../configs/coreType';
 import type customisationsType from '../configs/customisationsType';
 import type rulesType from '../configs/rulesType';
+import type templatesType from '../configs/templatesType';
 import type snowflakeMapType from '../configs/snowflakeMapType';
 
 /**
@@ -51,6 +52,7 @@ const CONFIGS = Object.freeze({
   CUSTOMISATIONS: getConfigPath('customisations', 'ts'),
   ADVANCED: getConfigPath('advanced', 'ts'),
   RULES: getConfigPath('rules', 'ts'),
+  TEMPLATES: getConfigPath('templates', 'ts'),
   SNOWFLAKE_MAP: getConfigPath('snowflakeMap', 'ts'),
 });
 
@@ -68,6 +70,9 @@ export async function getAdvancedConf(): Promise<advancedType> {
 }
 export async function getRules(): Promise<rulesType> {
   return (await cleanImport(CONFIGS.RULES)).default;
+}
+export async function getTemplates(): Promise<templatesType> {
+  return (await cleanImport(CONFIGS.TEMPLATES)).default;
 }
 export async function getSnowflakeMap(): Promise<snowflakeMapType> {
   return (await cleanImport(CONFIGS.SNOWFLAKE_MAP)).default;
