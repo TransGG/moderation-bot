@@ -7,6 +7,7 @@ export default interface customisations {
     timeout: number,
     kick: number,
     ban: number,
+    purge: number,
     default: number
   },
   Staff_Cant_Punish_Staff_Restriction: {

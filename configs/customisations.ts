@@ -9,6 +9,7 @@ const config: customisations = {
     timeout: 30,
     kick: 30,
     ban: 30,
+    purge: 3,
     default: 30
   },
   Staff_Cant_Punish_Staff_Restriction: {

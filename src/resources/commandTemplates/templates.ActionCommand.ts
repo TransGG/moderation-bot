@@ -47,7 +47,7 @@ export async function getRuleDescriptions(rule: string): Promise<string> {
   return `${RESOLVED_RULE?.ruleNumber}. ${RESOLVED_RULE?.shortDesc ?? 'Unknown rule'}`;
 }
 
-const durations = {
+export const durations = {
   week: 7 * 24 * 60 * 60 * 1000,
   day: 24 * 60 * 60 * 1000,
   hour: 60 * 60 * 1000,
@@ -56,7 +56,7 @@ const durations = {
   millisecond: 1
 }
 
-async function sendToSrNotifyChannel(
+export async function sendToSrNotifyChannel(
   client: Client,
   message: string
 ): Promise<void> {
@@ -83,7 +83,7 @@ async function sendToSrNotifyChannel(
   }
 }
 
-async function sendToLogChannel(
+export async function sendToLogChannel(
   client: Client,
   user: User,
   log: ModerationLog,
