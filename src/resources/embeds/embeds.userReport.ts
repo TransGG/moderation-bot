@@ -25,20 +25,20 @@ async function reportsCountSummary(userID: Snowflake) {
 
 export default async function messageReport(reporter: User, reason: string, user: User, voice: VoiceState) {
   const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
-    .setDescription(`> ${reporter}`)
+    .setAuthor({ name: 'Reported User', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
+    .setDescription(`> ${user.toString()} (${user.username})`)
     .addFields([
-      {name: 'Reason', value: reason, inline: true},
-      {name: 'This user has been reported', value: await reportsCountSummary(user.id), inline: true},
-      {name: '\u200b', value: '\u200b'},
-      {name: 'Reported User', value: user.toString(), inline: true},
-      {name: '\u200b', value: '\u200b'},
+      { name: 'Reason', value: reason, inline: true },
+      { name: 'This user has been reported', value: await reportsCountSummary(user.id), inline: true },
+      { name: '\u200b', value: '\u200b' },
+      { name: 'Reported By', value: `${reporter.toString()} (${reporter.username})`, inline: true },
+      { name: '\u200b', value: '\u200b' },
     ])
     .setTimestamp();
 
   if (voice.channel) {
     EMBED.addFields([
-      {name: 'Current Voice Channel', value: voice.channel?.toString(), inline: true}
+      { name: 'Current Voice Channel', value: voice.channel?.toString(), inline: true }
     ])
   }
 
