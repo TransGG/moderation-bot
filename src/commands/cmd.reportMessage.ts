@@ -2,15 +2,22 @@ import _ from 'lodash';
 import { ApplicationCommandType } from 'discord-api-types/v10';
 import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import MODALS from '@resources/modals.js';
+import BUTTONS from '@resources/buttons.js';
 import { GuildMemberRoleManager } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 
 export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Report Message')
-  .setResponse(async (interaction, _interactionHandler, _command) => {
+  .setResponse(async (interaction, interactionHandler, _command) => {
     if (!interaction.isMessageContextMenuCommand()) return;
-    _interactionHandler.addComponent(MODALS.report);
+    interactionHandler.addComponent(MODALS.report);
+    BUTTONS.reportActionRow.components.forEach(i => {
+      interactionHandler.addComponent(i);
+      console.log(i.toJSON())
+    });
+
+
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const REPORT_ALLOWED =
