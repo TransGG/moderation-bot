@@ -42,5 +42,10 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     inline: false
   }]);
 
+  if (log.action === 'ban') EMBED.addFields([{
+    name: 'Appeal this ban',
+    value: 'Please use [this google form](https://docs.google.com/forms/d/e/1FAIpQLSdDGRf6T5_8Dckf_c-8TIJFOLrqALQ6k5zc6EjGpMRJs-Q7pw/viewform)',
+  }])
+
   return EMBED;
 }
