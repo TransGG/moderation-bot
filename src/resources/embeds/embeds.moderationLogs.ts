@@ -14,7 +14,7 @@ export default async function moderationLogs(user: User, page = 1) {
 
   const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
-    .setDescription(`> <@${user.id}> (${user.username})`)
+    .setDescription(`> <@${user.id}> (\`${user.username}\`)`)
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
     .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => {
       const rule = RULES[log.rule];

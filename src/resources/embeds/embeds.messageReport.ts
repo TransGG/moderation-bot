@@ -26,7 +26,7 @@ async function reportsCountSummary(userID: Snowflake) {
 export default async function messageReport(reporter: User, reason: string, message: Message, guild: Guild) {
   const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Reported User', iconURL: message.author.displayAvatarURL(), url: `https://discord.com/users/${message.author.id}` })
-    .setDescription(`> ${message.author.toString()} (${message.author.username})`)
+    .setDescription(`> ${message.author.toString()} (\`${message.author.username}\`)`)
     .addFields([
       { name: 'Reason', value: reason, inline: true },
       { name: 'This user has been reported', value: await reportsCountSummary(message.author.id), inline: true },
@@ -37,7 +37,7 @@ export default async function messageReport(reporter: User, reason: string, mess
         inline: true
       },
       { name: 'Message Channel', value: message.channel.toString(), inline: true },
-      { name: 'Reported By', value: `${reporter.toString()} (${reporter.username})`, inline: true },
+      { name: 'Reported By', value: `${reporter.toString()} (\`${reporter.username}\`)`, inline: true },
       { name: '\u200b', value: '\u200b' },
     ])
     .setTimestamp();

@@ -51,7 +51,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     .setColor(extraActionOptions.color)
     .addFields([
       { name: 'User', value: desc, inline: true },
-      { name: 'Moderator', value: `> ${moderator} (${moderator?.username})` ?? '> Error: Could not fetch moderator', inline: true },
+      { name: 'Moderator', value: `> ${moderator} (\`${moderator?.username}\`)` ?? '> Error: Could not fetch moderator', inline: true },
       { name: '\u200B', value: '\u200B' },
       { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: true },
     ]);

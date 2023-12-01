@@ -14,7 +14,7 @@ export default async function logNotice(client: Client, moderator: User, users: 
     .setTitle(`🗑️ Purged ${amount} messages`)
     .setColor(0x70CCC9)
     .addFields([
-      { name: 'Moderator', value: `> ${moderator}` ?? '> Error: Could not fetch moderator', inline: true },
+      { name: 'Moderator', value: `> ${moderator} (\`${moderator.username}\`)` ?? '> Error: Could not fetch moderator', inline: true },
     ]);
 
 
@@ -27,7 +27,7 @@ export default async function logNotice(client: Client, moderator: User, users: 
   }
 
   EMBED.addFields([
-    { name: 'Affected Users', value: `>>> ${users.map(u => `<@${u.id}> (${u.id})`).join('\n')}`, inline: false },
+    { name: 'Affected Users', value: `>>> ${users.map(u => `<@${u.id}> (\`${u.username}\`)`).join('\n')}`, inline: false },
     { name: 'Reason', value: `>>> ${reason}`, inline: false }
   ]);
 
