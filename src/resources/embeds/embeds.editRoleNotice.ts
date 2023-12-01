@@ -1,4 +1,4 @@
-import { EmbedBuilder, User, Colors} from 'discord.js';
+import { EmbedBuilder, User, Colors } from 'discord.js';
 
 
 export default async function editRoleNotice(staff_member: User, user: User, changelog: string) {
@@ -7,7 +7,7 @@ export default async function editRoleNotice(staff_member: User, user: User, cha
     .setColor(Colors.Fuchsia)
     .setTitle(`✅ Edited roles for ${user.username}`)
     .addFields([
-      { name: 'User', value: `> <@${user.id}> (\`${user.id}\`)`, inline: true },
+      { name: 'User', value: `> <@${user.id}> (\`${user.username}\`)`, inline: true },
       { name: 'Moderator', value: `> <@${staff_member.id}>` ?? '> Error: Could not fetch moderator', inline: true },
       { name: '\u200B', value: '\u200B' },
 

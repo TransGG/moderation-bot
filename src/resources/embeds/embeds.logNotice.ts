@@ -42,7 +42,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   const title = `${extraActionOptions.emoji} ${extraActionOptions.pastTense} ${log.userState.username}${log.userState.discriminator === '0' ? ''
     : '#' + log.userState.discriminator}`;
 
-  const desc = `> <@${user.id}> (\`${user.id}\`)`;
+  const desc = `> <@${user.id}> (\`${user.username}\`)`;
   const duration = log.duration ? formatDuration(log.duration) : '';
 
   const EMBED = new EmbedBuilder()
@@ -51,7 +51,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     .setColor(extraActionOptions.color)
     .addFields([
       { name: 'User', value: desc, inline: true },
-      { name: 'Moderator', value: `> ${moderator}` ?? '> Error: Could not fetch moderator', inline: true },
+      { name: 'Moderator', value: `> ${moderator} (${moderator?.username})` ?? '> Error: Could not fetch moderator', inline: true },
       { name: '\u200B', value: '\u200B' },
       { name: 'Rule', value: `>>> ${await getRuleDescriptions(log.rule)}`, inline: true },
     ]);
