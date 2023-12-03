@@ -5,6 +5,7 @@ import { getSnowflakeMap } from '@utils.js';
 import EMBEDS from '../embeds.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import { ChannelType, TextInputStyle } from 'discord-api-types/v10';
+import BUTTONS from '@resources/buttons.js';
 
 export default new ResponsiveModal()
   .setCustomId('modals.report')
@@ -22,6 +23,13 @@ export default new ResponsiveModal()
     if (!interaction.isModalSubmit()) return;
     await interaction.deferReply({ ephemeral: true });
 
+    console.log('in report')
+    /*BUTTONS.reportActionRow.components.forEach(i => {
+      interactionHandler.addComponent(i);
+      console.log(i.toJSON())
+    });*/
+
+
     const SNOWFLAKE_MAP = await getSnowflakeMap();
     const text_input = interaction.components[0]?.components[0] as TextInputModalData;
     const REASON = text_input.value ?? 'No reason provided';
@@ -29,14 +37,16 @@ export default new ResponsiveModal()
     const GUILD = interaction.guild as Guild;
 
     try {
-      let MESSAGE: Message | undefined
-      let MEMBER: GuildMember | undefined
+      let MESSAGE: Message | null
+      let MEMBER: GuildMember | null
       try {
-        MESSAGE = await interaction.channel?.messages.fetch(CUSTOM_ID) as Message;
+        MESSAGE = await interaction.channel?.messages.fetch(CUSTOM_ID) as Message<boolean>;
+        MEMBER = MESSAGE?.member
       } catch {
         // If the report is just a user
         // Shouldn't get any false positives since message IDs are longer than user IDs
         MEMBER = (await interaction.guild?.members.fetch(CUSTOM_ID)) as GuildMember;
+        MESSAGE = null
       }
 
       if (MESSAGE) {
@@ -47,7 +57,10 @@ export default new ResponsiveModal()
           if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
-            embeds: [await EMBEDS.messageReport(interaction.user, REASON, MESSAGE!, GUILD)]
+            embeds: [await EMBEDS.messageReport(interaction.user, REASON, <Message>MESSAGE, GUILD)],
+            components: [
+              BUTTONS.reportActionRow
+            ],
           });
           await reportLog.react('👍');
         }));
@@ -57,14 +70,14 @@ export default new ResponsiveModal()
           ephemeral: true
         });
       } else if (MEMBER) {
-        await COLLECTIONS.UserLog.newReportLog(REASON, interaction.user, MEMBER!.user);
+        await COLLECTIONS.UserLog.newReportLog(REASON, interaction.user, MEMBER.user);
 
         await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
           const CHANNEL = await interactionHandler.client.channels.fetch(id);
           if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
-            embeds: [await EMBEDS.userReport(interaction.user, REASON, MEMBER!.user, MEMBER!.voice)]
+            embeds: [await EMBEDS.userReport(interaction.user, REASON, (<GuildMember>MEMBER).user, (<GuildMember>MEMBER).voice)]
           });
           await reportLog.react('👍');
         }));

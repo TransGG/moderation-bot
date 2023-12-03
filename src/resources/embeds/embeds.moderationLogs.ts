@@ -13,8 +13,8 @@ export default async function moderationLogs(user: User, page = 1) {
   const RULES = await getRules();
 
   const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL() })
-    .setDescription(`> <@${user.id}>`)
+    .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
+    .setDescription(`> <@${user.id}> (\`${user.username}\`)`)
     .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
     .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => {
       const rule = RULES[log.rule];

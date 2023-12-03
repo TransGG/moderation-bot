@@ -25,27 +25,27 @@ async function reportsCountSummary(userID: Snowflake) {
 
 export default async function messageReport(reporter: User, reason: string, message: Message, guild: Guild) {
   const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Reported By', iconURL: reporter.displayAvatarURL() })
-    .setDescription(`> ${reporter}`)
+    .setAuthor({ name: 'Reported User', iconURL: message.author.displayAvatarURL(), url: `https://discord.com/users/${message.author.id}` })
+    .setDescription(`> ${message.author.toString()} (\`${message.author.username}\`)`)
     .addFields([
-      {name: 'Reason', value: reason, inline: true},
-      {name: 'This user has been reported', value: await reportsCountSummary(message.author.id), inline: true},
-      {name: '\u200b', value: '\u200b'},
+      { name: 'Reason', value: reason, inline: true },
+      { name: 'This user has been reported', value: await reportsCountSummary(message.author.id), inline: true },
+      { name: '\u200b', value: '\u200b' },
       {
-        name:'Message Link',
+        name: 'Message Link',
         value: `[Jump to message](https://discord.com/channels/${guild.id}/${message.channel.id}/${message.id})`,
         inline: true
       },
-      {name: 'Message Channel', value: message.channel.toString(), inline: true},
-      {name: 'Reported User', value: message.author.toString(), inline: true},
-      {name: '\u200b', value: '\u200b'},
+      { name: 'Message Channel', value: message.channel.toString(), inline: true },
+      { name: 'Reported By', value: `${reporter.toString()} (\`${reporter.username}\`)`, inline: true },
+      { name: '\u200b', value: '\u200b' },
     ])
     .setTimestamp();
 
   if (message.content) EMBED.addFields([
     {
-      name:'Reported Message Content',
-      value:message.content,
+      name: 'Reported Message Content',
+      value: message.content,
       inline: false
     }
   ]);
