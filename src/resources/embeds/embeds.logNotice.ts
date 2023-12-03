@@ -39,7 +39,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     (log.messageInfo?.content?.length as number) <= 1020 ? log.messageInfo?.content :
       log.messageInfo?.content.slice(0, 1015) + '...';
 
-  const title = `${extraActionOptions.emoji} ${extraActionOptions.pastTense} ${log.userState.username}${log.userState.discriminator === '0' ? ''
+  const title = `${extraActionOptions.emoji} ${extraActionOptions.pastTense} ${log.userState.username.replace('_', '\\_')}${log.userState.discriminator === '0' ? ''
     : '#' + log.userState.discriminator}`;
 
   const desc = `> <@${user.id}> (\`${user.username}\`)`;

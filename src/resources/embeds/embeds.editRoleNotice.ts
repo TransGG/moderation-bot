@@ -5,7 +5,7 @@ export default async function editRoleNotice(staff_member: User, user: User, cha
 
   const EMBED = new EmbedBuilder()
     .setColor(Colors.Fuchsia)
-    .setTitle(`✅ Edited roles for ${user.username}`)
+    .setTitle(`✅ Edited roles for ${user.username.replace('_', '\\_')}`)
     .addFields([
       { name: 'User', value: `> <@${user.id}> (\`${user.username}\`)`, inline: true },
       { name: 'Moderator', value: `> <@${staff_member.id}> (\`${staff_member.username}\`)` ?? '> Error: Could not fetch moderator', inline: true },
