@@ -5,7 +5,8 @@ import BUTTONS from '@resources/buttons.js';
 import EMBEDS from '@resources/embeds.js';
 
 async function get_reported_user(client: Client, embed: Embed) {
-  const regex = /https:\/\/discord\.com\/users\/([0-9]{18})/gm;
+  const regex = /https:\/\/discord\.com\/users\/([0-9]+)/gm;
+  
   const match = regex.exec(embed.author?.url as string);
   if (!match || !match[1]) return undefined;
 
