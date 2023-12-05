@@ -77,7 +77,10 @@ export default new ResponsiveModal()
           if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
-            embeds: [await EMBEDS.userReport(interaction.user, REASON, (<GuildMember>MEMBER).user, (<GuildMember>MEMBER).voice)]
+            embeds: [await EMBEDS.userReport(interaction.user, REASON, (<GuildMember>MEMBER).user, (<GuildMember>MEMBER).voice)],
+            components: [
+              BUTTONS.reportActionRow
+            ],
           });
           await reportLog.react('👍');
         }));
