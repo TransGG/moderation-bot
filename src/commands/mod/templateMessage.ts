@@ -2,7 +2,7 @@ import { SlashCommandStringOption } from '@discordjs/builders';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { GuildMemberRoleManager, type APIApplicationCommandOptionChoice } from 'discord.js';
 import { getSnowflakeMap, getTemplates } from '@utils.js';
-import ModMessage from './../../subcommands/mod/cmd.mod.message.js';
+import ModMessage from './message.js';
 
 const TEMPLATES = await getTemplates();
 

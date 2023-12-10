@@ -3,14 +3,13 @@ import { ApplicationCommandType } from 'discord-api-types/v10';
 import { ResponsiveContextMenuCommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { GuildMemberRoleManager, GuildMember } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
-import ModMessage from './subcommands/mod/cmd.mod.message.js';
+import ModUser from './mod/user.js';
 
 export default new ResponsiveContextMenuCommandBuilder()
-  .setType(ApplicationCommandType.Message)
-  .setName('Quick Ban')
+  .setType(ApplicationCommandType.User)
+  .setName('Quick Ban User')
   .setResponse(async (interaction, _interactionHandler, _command) => {
-
-    if (!interaction.isMessageContextMenuCommand()) return;
+    if (!interaction.isUserContextMenuCommand()) return;
     await interaction.deferReply({ ephemeral: true })
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
@@ -32,9 +31,9 @@ export default new ResponsiveContextMenuCommandBuilder()
       return;
     }
 
-    const GUILD_MEMBER_ID = interaction.targetMessage.author.id;
+    const GUILD_MEMBER_ID = interaction.targetUser.id;
 
-    const GUILD_MEMBER = interaction.targetMessage.member instanceof GuildMember ? interaction.targetMessage.member : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
+    const GUILD_MEMBER = interaction.targetMember instanceof GuildMember ? interaction.targetMember : await interaction.guild?.members.fetch(GUILD_MEMBER_ID).catch();
 
     if (!GUILD_MEMBER) {
       await interaction.followUp({
@@ -46,6 +45,7 @@ export default new ResponsiveContextMenuCommandBuilder()
 
     const JOINED_AT = GUILD_MEMBER.joinedAt;
 
+
     if (!JOINED_AT || Date.now() - JOINED_AT.getTime() > 1000 * 60 * 60 * 24 * 7) {
       await interaction.followUp({
         content: 'This member joined the server too long ago to be quick banned, please use the normal ban command instead',
@@ -54,10 +54,8 @@ export default new ResponsiveContextMenuCommandBuilder()
       return;
     }
 
-    await ModMessage.response(interaction, _interactionHandler, ModMessage, {
+    await ModUser.response(interaction, _interactionHandler, ModUser, {
       user: GUILD_MEMBER.user,
-      'message-id': interaction.targetMessage.id,
-      'delete-message': true,
       'action': 'ban',
       reason: 'Banned for breaking the rules in under 7 days of joining',
       rule: 'other',
