@@ -1,4 +1,4 @@
-import UserLog from './collections/collections.userLogs.js';
+import UserLog from './collections/userLogs.js';
 import ModerationLog from './collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
 import ReportLog from './collections/subcollections/userLogs/collections.userLogs.reportLogs.js';
 
