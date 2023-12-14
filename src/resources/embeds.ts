@@ -1,15 +1,15 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
-import messageReport from './embeds/embeds.messageReport.js';
-import userReport from './embeds/embeds.userReport.js';
-import moderationLogs from './embeds/embeds.moderationLogs.js';
-import moderationNotice from './embeds/embeds.moderationNotice.js';
-import calmdownNotice from './embeds/embeds.calmdownNotice.js';
-import editRoleNotice from './embeds/embeds.editRoleNotice.js';
-import logNotice from './embeds/embeds.logNotice.js';
-import purgeNotice from './embeds/embeds.purgeNotice.js';
-import purgeLogs from './embeds/embeds.purgeLogs.js';
+import messageReport from './embeds/messageReport.js';
+import userReport from './embeds/userReport.js';
+import moderationLogs from './embeds/moderationLogs.js';
+import moderationNotice from './embeds/moderationNotice.js';
+import calmdownNotice from './embeds/calmdownNotice.js';
+import editRoleNotice from './embeds/editRoleNotice.js';
+import logNotice from './embeds/logNotice.js';
+import purgeNotice from './embeds/purgeNotice.js';
+import purgeLogs from './embeds/purgeLogs.js';
 
 const EMBEDS = {
   messageReport,

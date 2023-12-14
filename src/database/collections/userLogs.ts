@@ -1,18 +1,18 @@
 import _ from 'lodash';
 import type { Message, Snowflake, User } from 'discord.js';
 import type { ObjectId } from 'mongodb';
-import type ModerationLogT from './subcollections/userLogs/collections.userLogs.moderationLogs.js';
-import type ReportLogT from './subcollections/userLogs/collections.userLogs.reportLogs.js';
+import type ModerationLogT from './userLogs/moderationLogs.js';
+import type ReportLogT from './userLogs/reportLogs.js';
 import DATABASE from '../database.js';
 import { t } from '@utils.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
 export const ModerationLog =
-  (await import(t`./subcollections/userLogs/collections.userLogs.moderationLogs.js`))
+  (await import(t`./userLogs/moderationLogs.js`))
     .default as typeof ModerationLogT;
 
 export const ReportLog =
-  (await import(t`./subcollections/userLogs/collections.userLogs.reportLogs.js`))
+  (await import(t`./userLogs/reportLogs.js`))
     .default as typeof ReportLogT;
 
 export default class UserLog {

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, GuildMember, type Interaction, userMention, ChannelType } from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuOptionBuilder, GuildMember, type Interaction, userMention, ChannelType } from 'discord.js';
 import { ResponsiveMessageSelectMenu } from '@interactionHandling/componentBuilders.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import { getSnowflakeMap } from '@utils.js';
@@ -12,7 +12,7 @@ export interface RoleInfo {
 const SNOWFLAKE_MAP = await getSnowflakeMap();
 
 export default async function modEditRoleRow(roles: RoleInfo[], member: GuildMember) {
-  const DROPDOWN = new ActionRowBuilder<StringSelectMenuBuilder>()
+  const DROPDOWN = new ActionRowBuilder<ResponsiveMessageSelectMenu>()
     .addComponents([
       new ResponsiveMessageSelectMenu()
         .setCustomId('User Roles Select Menu')

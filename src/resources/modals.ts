@@ -1,8 +1,8 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
-import report from './modals/modals.report.js';
-import calmdown from './modals/modals.calmdown.js';
+import report from './modals/report.js';
+import calmdown from './modals/calmdown.js';
 
 const MODALS = {
   report,

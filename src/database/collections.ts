@@ -1,6 +1,6 @@
 import UserLog from './collections/userLogs.js';
-import ModerationLog from './collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
-import ReportLog from './collections/subcollections/userLogs/collections.userLogs.reportLogs.js';
+import ModerationLog from './collections/userLogs/moderationLogs.js';
+import ReportLog from './collections/userLogs/reportLogs.js';
 
 const COLLECTIONS = {
   UserLog,

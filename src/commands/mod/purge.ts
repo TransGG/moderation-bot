@@ -2,10 +2,10 @@ import { SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandUserOp
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { ChannelType, GuildMemberRoleManager, Message, TextChannel } from 'discord.js';
 import { getCustomisations, getSnowflakeMap } from '@utils.js';
-import { durations, sendToSrNotifyChannel } from '@resources/commandTemplates/templates.ActionCommand.js';
+import { durations, sendToSrNotifyChannel } from '@resources/commandTemplates/ActionCommand.js';
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '@resources/embeds.js';
-import createLogFile from '../../../utils/createLogFile.js';
+import createLogFile from '../../utils/createLogFile.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('purge')

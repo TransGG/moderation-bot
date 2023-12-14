@@ -1,8 +1,8 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
-import modLogActionRow from './buttons/buttons.moderationLog.js';
-import reportActionRow from './buttons/buttons.report.js'
+import modLogActionRow from './buttons/moderationLog.js';
+import reportActionRow from './buttons/report.js'
 
 const BUTTONS = {
   modLogActionRow,

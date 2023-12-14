@@ -1,6 +1,6 @@
 import { Client, Colors, DiscordAPIError, EmbedBuilder, User, time } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
-import { getRuleDescriptions, type ExtraActionOptions } from '@resources/commandTemplates/templates.ActionCommand.js';
+import { getRuleDescriptions, type ExtraActionOptions } from '@resources/commandTemplates/ActionCommand.js';
 
 const durations = {
   week: 7 * 24 * 60 * 60 * 1000,
