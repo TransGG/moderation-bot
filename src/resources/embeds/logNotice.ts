@@ -87,28 +87,34 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     }]);
   }
 
-  if (log.messageInfo) EMBED.addFields([{ name: '\u200B', value: '\u200B' }]);
+  if (log.messageInfo) {
+    const channelName = client.channels.resolveId(log.messageInfo.channelId)
+    EMBED.addFields([
+      { name: '\u200B', value: '\u200B' },
+      { name: 'Channel', value: `<#${log.messageInfo.channelId}> (\`${channelName}\`)` },
+    ]);
 
-  if (log.messageInfo?.content) {
-    EMBED.addFields([{
-      name: 'Infracting Message Content',
-      value: `>>> ${message_content}`,
-    }]);
-  }
+    if (log.messageInfo.content) {
+      EMBED.addFields([{
+        name: 'Infracting Message Content',
+        value: `>>> ${message_content}`,
+      }]);
+    }
 
-  if (log.messageInfo?.attachments.size) {
-    const attachments_list: [string] = [''];
-    let count = 1;
-    attachments_list.pop();
-    log.messageInfo?.attachments.each(i => {
-      attachments_list?.push(`[${count}](${i.url})`);
-      count += 1;
-    });
+    if (log.messageInfo.attachments.size) {
+      const attachments_list: [string] = [''];
+      let count = 1;
+      attachments_list.pop();
+      log.messageInfo.attachments.each(i => {
+        attachments_list?.push(`[${count}](${i.url})`);
+        count += 1;
+      });
 
-    EMBED.addFields([{
-      name: 'Infracting Message Attachments',
-      value: `> ${attachments_list?.join() ?? 'none'}`,
-    }]);
+      EMBED.addFields([{
+        name: 'Infracting Message Attachments',
+        value: `> ${attachments_list?.join() ?? 'none'}`,
+      }]);
+    }
   }
 
   return EMBED;
