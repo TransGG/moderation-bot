@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, Client, ButtonStyle, Embed, type Interaction } from 'discord.js';
+import { ActionRowBuilder, Client, ButtonStyle, Embed, type Interaction } from 'discord.js';
 import { ResponsiveMessageButton } from '@interactionHandling/componentBuilders.js';
 import type InteractionHandler from '@interactionHandling/interactionHandler.js';
 import BUTTONS from '@resources/buttons.js';
@@ -6,14 +6,13 @@ import EMBEDS from '@resources/embeds.js';
 
 async function get_reported_user(client: Client, embed: Embed) {
   const regex = /https:\/\/discord\.com\/users\/([0-9]+)/gm;
-  
   const match = regex.exec(embed.author?.url as string);
   if (!match || !match[1]) return undefined;
 
   return await client.users.fetch(match[1]);
 }
 
-export default new ActionRowBuilder<ButtonBuilder>()
+export default new ActionRowBuilder<ResponsiveMessageButton>()
   .addComponents([
     new ResponsiveMessageButton()
       .setCustomId('Report Message View Mod Logs')

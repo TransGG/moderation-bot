@@ -1,7 +1,7 @@
 import path from 'node:path';
 import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
-import modEditRoleRow from './dropdowns/dropdowns.roles.js';
+import modEditRoleRow from './dropdowns/roles.js';
 
 const DROPDOWNS = {
   modEditRoleRow

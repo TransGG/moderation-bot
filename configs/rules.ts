@@ -97,7 +97,7 @@ const config: rules = {
     active: true,
   },
   other: {
-    ruleNumber: 9,
+    ruleNumber: 13,
     shortDesc: 'Other',
     description:
       'This is a catch-all rule to allow moderators to moderate actions which otherwise wouldn\'t be contained in any rule. Moderators reserve the right to moderate users who are not breaking any stated rules but are otherwise disrupting the safe space. Such actions will be reviewed by other staff, but if you want to appeal a bad moderation decision please also open a ticket',

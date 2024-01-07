@@ -1,37 +1,28 @@
 // imports
 import chalk from 'chalk';
-import type { Client, ClientUser, Interaction, ButtonBuilder, StringSelectMenuBuilder, ModalBuilder } from 'discord.js';
-import type { ActionRowBuilder, ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import type { Client, ClientUser, Interaction } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import {
   ResponsiveContextMenuCommandBuilder,
   ResponsiveSlashCommandBuilder,
   ResponsiveSlashCommandSubcommandBuilder,
-  ResponsiveSlashCommandSubcommandGroupBuilder
+  ResponsiveSlashCommandSubcommandGroupBuilder,
+  type Command
 } from './commandBuilders.js';
 import {
   ResponsiveMessageButton,
   ResponsiveMessageSelectMenu,
-  ResponsiveModal
+  ResponsiveModal,
+  type Component
 } from './componentBuilders.js';
-
-type Command =
-  SlashCommandBuilder |
-  ContextMenuCommandBuilder;
-
-type Componenent =
-  ButtonBuilder |
-  StringSelectMenuBuilder |
-  ModalBuilder |
-  ActionRowBuilder<ButtonBuilder>;
 
 export default class InteractionHandler {
   public readonly client: Client;
   public readonly restClient?: REST;
 
   public readonly commands: Command[];
-  public readonly components: Componenent[] = [];
+  public readonly components: Component[] = [];
 
   public globalCommands = true;
   public guilds: string[] | undefined;
@@ -83,7 +74,7 @@ export default class InteractionHandler {
     ) await COMMAND.respond(interaction, this);
   }
 
-  public addComponent(component: Componenent) {
+  public addComponent(component: Component) {
     const EXISTING = this.components.find(i => {
       if ('type' in i.data && 'type' in component.data && 'custom_id' in i.data && 'custom_id' in component.data) {
         return (i.data.type === component.data.type &&

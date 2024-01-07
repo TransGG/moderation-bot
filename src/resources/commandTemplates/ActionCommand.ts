@@ -17,7 +17,7 @@ import type InteractionHandler from '@interactionHandling/interactionHandler.js'
 import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '../embeds.js';
 import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
-import type ModerationLog from '@database/collections/subcollections/userLogs/collections.userLogs.moderationLogs.js';
+import type ModerationLog from '@database/collections/userLogs/moderationLogs.js';
 
 function getBasicOptions(interaction: Interaction, options: Partial<OverrideActionOptions>) {
   const DELETE_MESSAGE = options['delete-message'] ?? (interaction.isChatInputCommand() ? interaction.options.getBoolean('delete-message', false) : undefined) ?? undefined;
@@ -170,21 +170,21 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
-      case 'W':
-        duration += Number(TIME_GROUP.amount) * durations.week;
-        break;
-      case 'D':
-        duration += Number(TIME_GROUP.amount) * durations.day;
-        break;
-      case 'H':
-        duration += Number(TIME_GROUP.amount) * durations.hour;
-        break;
-      case 'M':
-        duration += Number(TIME_GROUP.amount) * durations.minute;
-        break;
-      case 'S':
-        duration += Number(TIME_GROUP.amount) * durations.second;
-        break;
+        case 'W':
+          duration += Number(TIME_GROUP.amount) * durations.week;
+          break;
+        case 'D':
+          duration += Number(TIME_GROUP.amount) * durations.day;
+          break;
+        case 'H':
+          duration += Number(TIME_GROUP.amount) * durations.hour;
+          break;
+        case 'M':
+          duration += Number(TIME_GROUP.amount) * durations.minute;
+          break;
+        case 'S':
+          duration += Number(TIME_GROUP.amount) * durations.second;
+          break;
       }
     }
 
@@ -496,7 +496,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             content: `Banned out-of-server member ${typeof bannedUser === 'object'
               ? `${(bannedUser as User).tag} (${bannedUser.id})`
               : bannedUser
-            }`,
+              }`,
           });
           return;
         } catch (e) {

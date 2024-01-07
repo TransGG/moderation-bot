@@ -9,6 +9,12 @@ import {
 import { Respondable, Responsive } from './responsiveMixins.js';
 import type InteractionHandler from './interactionHandler.js';
 
+export type Command =
+  ResponsiveContextMenuCommandBuilder |
+  ResponsiveSlashCommandBuilder |
+  ResponsiveSlashCommandSubcommandBuilder |
+  ResponsiveSlashCommandSubcommandGroupBuilder;
+
 export class ResponsiveContextMenuCommandBuilder
   extends Responsive<new () => ContextMenuCommandBuilder>(ContextMenuCommandBuilder) { }
 

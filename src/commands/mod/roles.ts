@@ -3,7 +3,7 @@ import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/co
 import { GuildMemberRoleManager } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 import DROPDOWNS from '@resources/dropdowns.js';
-import type { RoleInfo } from '@resources/dropdowns/dropdowns.roles.js';
+import type { RoleInfo } from '@resources/dropdowns/roles.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('roles')
@@ -37,7 +37,7 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     if (!member || !(member.roles instanceof GuildMemberRoleManager)) return
 
-    if(!member.manageable) {
+    if (!member.manageable) {
       await interaction.followUp('Unable to edit roles for this user.');
       return;
     }
