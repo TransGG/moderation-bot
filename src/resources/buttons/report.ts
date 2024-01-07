@@ -6,6 +6,10 @@ import EMBEDS from '@resources/embeds.js';
 
 async function get_reported_user(client: Client, embed: Embed) {
   const regex = /https:\/\/discord\.com\/users\/([0-9]+)/gm;
+<<<<<<< HEAD:src/resources/buttons/report.ts
+=======
+  
+>>>>>>> master:src/resources/buttons/buttons.report.ts
   const match = regex.exec(embed.author?.url as string);
   if (!match || !match[1]) return undefined;
 
