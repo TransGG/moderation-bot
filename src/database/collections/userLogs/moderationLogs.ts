@@ -38,6 +38,7 @@ export default class ModerationLog {
   public readonly timestamp: EpochTimeStamp = Date.now();
   public readonly userState: ReturnType<typeof getUserState>;
   public readonly messageInfo?: ReturnType<typeof getMessageInfo>;
+  public readonly keepMessage?: boolean
 
   public readonly moderator: Snowflake;
   public readonly reason: string;
@@ -55,6 +56,7 @@ export default class ModerationLog {
     rule: string,
     privateNotes?: string,
     duration?: number,
+    keepMessage?: boolean,
     message?: Message
   ) {
     this.moderator = moderator;
@@ -65,6 +67,7 @@ export default class ModerationLog {
     this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;
     if ((action === 'timeout' || action === 'ban') && duration) this.duration = duration;
+    if (keepMessage) this.keepMessage = keepMessage;
     if (message) this.messageInfo = getMessageInfo(message);
   }
 }

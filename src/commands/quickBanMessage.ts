@@ -57,7 +57,7 @@ export default new ResponsiveContextMenuCommandBuilder()
     await ModMessage.response(interaction, _interactionHandler, ModMessage, {
       user: GUILD_MEMBER.user,
       'message-id': interaction.targetMessage.id,
-      'delete-message': true,
+      'keep-message': false,
       'action': 'ban',
       reason: 'Banned for breaking the rules in under 7 days of joining',
       rule: 'other',
