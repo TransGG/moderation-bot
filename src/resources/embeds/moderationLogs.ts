@@ -14,7 +14,7 @@ const pastTenseActions: Record<string, string> = {
   add_mature: 'Received the mature role', // legacy
 }
 
-export default async function moderationLogs(user: User, page = 1) {
+export default async function moderationLogs(user: User, showHidden = false, page = 1) {
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
 
   const LOGS = (await COLLECTIONS.UserLog.getUserLog(user.id)).moderationLogs;
@@ -25,8 +25,8 @@ export default async function moderationLogs(user: User, page = 1) {
   const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
     .setDescription(`> <@${user.id}> (\`${user.username}\`)`)
-    .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1}` })
-    .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map(log => {
+    .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1} | Showing Hidden: ${showHidden}` })
+    .addFields(LOGS.slice(STARTING_INDEX, STARTING_INDEX + LPP).map((log, index) => {
       const rule = RULES[log.rule];
       const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule})` : `Deleted rule (${log.rule})`;
       let messageDeletedText: string;
@@ -38,9 +38,11 @@ export default async function moderationLogs(user: User, page = 1) {
         messageDeletedText = log.keepMessage ? 'Message not deleted' : 'Message Deleted';
       }
 
+      if (log.isHidden == true && showHidden == false) return [];
+
       return [
         {
-          name: ruleText,
+          name: `${STARTING_INDEX + index + 1}. ${ruleText}`,
           value: log.reason,
           inline: true
         },
@@ -53,7 +55,7 @@ export default async function moderationLogs(user: User, page = 1) {
           name: `${pastTenseActions[log.action] ?? 'ERROR'} <t:${Math.floor(log.timestamp / 1000)}:R>`,
           value: messageDeletedText,
           inline: true
-        },
+        }
       ]
     }).flat());
   return EMBED;

@@ -3,10 +3,12 @@ import chokidar from 'chokidar';
 import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 import modLogActionRow from './buttons/moderationLog.js';
 import reportActionRow from './buttons/report.js'
+import toggleLog from './buttons/toggleLog.js'
 
 const BUTTONS = {
   modLogActionRow,
   reportActionRow,
+  toggleLog
 };
 
 // TODO: a more centralised way to reload?
