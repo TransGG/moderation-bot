@@ -33,6 +33,17 @@ export default class UserLog {
       new UserLog(userID);
   }
 
+  public static async setHidden(userID: Snowflake, indexModLog: number, newValue: boolean) {
+    const USER_LOG = await UserLog.getUserLog(userID);
+
+    const MOD_LOG = USER_LOG.moderationLogs[indexModLog];
+    if (MOD_LOG) {
+      MOD_LOG.isHidden = newValue;
+    }
+
+    await USER_LOG.update();
+  }
+
   public static async checkModeratorActivityInTime(
     moderatorID: Snowflake,
     action: string,

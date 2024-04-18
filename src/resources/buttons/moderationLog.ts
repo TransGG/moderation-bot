@@ -5,6 +5,7 @@ import EMBEDS from '@resources/embeds.js'
 
 function get_page_info(embed: Embed) {
   const regex = /Page ([0-9]+) of ([0-9]+)/gm;
+
   const match = regex.exec(embed.footer?.text as string);
   if (!match) return { current_page: 0, last_page: 0 };
   return {
@@ -20,6 +21,14 @@ async function get_log_user(client: Client, embed: Embed) {
 
   return await client.users.fetch(match[1]);
 }
+
+function get_showing_hidden(embed: Embed) {
+  const regex = /Showing Hidden: (true|false)/gm;
+  const match = regex.exec(embed.footer?.text as string);
+  if (!match) return false;
+  return match[1] === 'true';
+}
+
 
 export default new ActionRowBuilder<ResponsiveMessageButton>()
   .addComponents([
@@ -37,7 +46,7 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
           return;
         }
 
-        await interaction.update({ embeds: [await EMBEDS.moderationLogs(user, 1)] })
+        await interaction.update({ embeds: [await EMBEDS.moderationLogs(user, get_showing_hidden(this_embed), 1)] })
         return;
       }),
     new ResponsiveMessageButton()
@@ -63,7 +72,7 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
         if (page_info.current_page < 1) page_info.current_page = page_info.last_page;
 
         await interaction.update({
-          embeds: [await EMBEDS.moderationLogs(user, page_info.current_page)]
+          embeds: [await EMBEDS.moderationLogs(user, get_showing_hidden(this_embed), page_info.current_page)]
         });
         return;
       }),
@@ -89,7 +98,7 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
         if (page_info.current_page > page_info.last_page) page_info.current_page = 1;
 
         await interaction.update({
-          embeds: [await EMBEDS.moderationLogs(user, page_info.current_page)]
+          embeds: [await EMBEDS.moderationLogs(user, get_showing_hidden(this_embed), page_info.current_page)]
         });
         return;
       }),
@@ -116,7 +125,7 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
         }
 
         await interaction.update({
-          embeds: [await EMBEDS.moderationLogs(user, page_info.last_page)]
+          embeds: [await EMBEDS.moderationLogs(user, get_showing_hidden(this_embed), page_info.last_page)]
         });
         return;
       })

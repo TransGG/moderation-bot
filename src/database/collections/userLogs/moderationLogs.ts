@@ -48,6 +48,8 @@ export default class ModerationLog {
   public readonly privateNotes?: string;
   public readonly action: string;
 
+  public isHidden: boolean;
+
   public constructor(
     moderator: Snowflake,
     user: User,
@@ -63,6 +65,7 @@ export default class ModerationLog {
     this.userState = getUserState(user);
     this.reason = reason;
     this.action = action;
+    this.isHidden = false;
 
     this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;

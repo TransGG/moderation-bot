@@ -10,6 +10,8 @@ import editRoleNotice from './embeds/editRoleNotice.js';
 import logNotice from './embeds/logNotice.js';
 import purgeNotice from './embeds/purgeNotice.js';
 import purgeLogs from './embeds/purgeLogs.js';
+import toggleLog from './embeds/toggleLog.js';
+import toggleLogNotice from './embeds/toggleLogNotice.js';
 
 const EMBEDS = {
   messageReport,
@@ -21,6 +23,8 @@ const EMBEDS = {
   logNotice,
   purgeNotice,
   purgeLogs,
+  toggleLog,
+  toggleLogNotice,
 };
 
 // TODO: a more centralised way to reload?
