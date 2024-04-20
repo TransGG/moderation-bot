@@ -16,7 +16,7 @@ const config: rules = {
     extended: [],
     active: true,
   },
-  disallowedopics: {
+  disallowedtopics: {
     ruleNumber: 3,
     shortDesc: 'Disallowed topic or phrase',
     description:
