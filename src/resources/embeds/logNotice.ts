@@ -92,7 +92,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     EMBED.addFields([
       { name: '\u200B', value: '\u200B' },
       { name: 'Channel', value: `<#${log.messageInfo.channelId}> (\`${channelName}\`)`, inline: true },
-      { name: `Message was ${log.keepMessage ? 'not' : ''} deleted.`, value: '\u200B', inline: true },
+      { name: `Message was ${log.keepMessage ? 'not ' : ''}deleted.`, value: '\u200B', inline: true },
     ]);
 
     if (log.messageInfo.content) {
