@@ -34,7 +34,7 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
         }
 
         await interaction.followUp({
-          embeds: [await EMBEDS.moderationLogs(user)],
+          embeds: [await EMBEDS.moderationLogs(user, false)],
           components: [
             BUTTONS.modLogActionRow
           ],

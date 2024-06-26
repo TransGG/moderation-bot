@@ -11,4 +11,6 @@ export default new ResponsiveSlashCommandBuilder()
   .addSubcommand((await import(t`./mod/roles.js`)).default)
   .addSubcommand((await import(t`./mod/purge.js`)).default)
   .addSubcommand((await import(t`./mod/templateUser.js`)).default)
-  .addSubcommand((await import(t`./mod/templateMessage.js`)).default);
+  .addSubcommand((await import(t`./mod/templateMessage.js`)).default)
+  .addSubcommand((await import(t`./mod/toggle.js`)).default);
+

@@ -64,7 +64,7 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     await ModMessage.response(interaction, _interactionHandler, ModMessage, {
       'message-id': interaction.options.getString('message-id', true),
-      'delete-message': true,
+      'keep-message': false,
       ...template,
       'private-notes': '[Performed Using Template Message]' + interaction.options.getString('private-notes', false) ? '\n' + interaction.options.getString('private-notes', false) : ''
     });

@@ -20,7 +20,7 @@ import { getCustomisations, getRules, getSnowflakeMap } from '@utils.js';
 import type ModerationLog from '@database/collections/userLogs/moderationLogs.js';
 
 function getBasicOptions(interaction: Interaction, options: Partial<OverrideActionOptions>) {
-  const DELETE_MESSAGE = options['delete-message'] ?? (interaction.isChatInputCommand() ? interaction.options.getBoolean('delete-message', false) : undefined) ?? undefined;
+  const KEEP_MESSAGE = options['keep-message'] ?? (interaction.isChatInputCommand() ? interaction.options.getBoolean('keep-message', false) : undefined) ?? undefined;
   const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
   const REASON = options['reason'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('reason', true) : null);
@@ -29,7 +29,7 @@ function getBasicOptions(interaction: Interaction, options: Partial<OverrideActi
   const RULE = options['rule'] ?? JSON.parse((interaction.isChatInputCommand() ? interaction.options.getString('rule', false) : null) ?? 'null');
 
   return {
-    DELETE_MESSAGE,
+    KEEP_MESSAGE,
     ACTION,
     REASON,
     PRIVATE_NOTES,
@@ -170,21 +170,21 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
-        case 'W':
-          duration += Number(TIME_GROUP.amount) * durations.week;
-          break;
-        case 'D':
-          duration += Number(TIME_GROUP.amount) * durations.day;
-          break;
-        case 'H':
-          duration += Number(TIME_GROUP.amount) * durations.hour;
-          break;
-        case 'M':
-          duration += Number(TIME_GROUP.amount) * durations.minute;
-          break;
-        case 'S':
-          duration += Number(TIME_GROUP.amount) * durations.second;
-          break;
+      case 'W':
+        duration += Number(TIME_GROUP.amount) * durations.week;
+        break;
+      case 'D':
+        duration += Number(TIME_GROUP.amount) * durations.day;
+        break;
+      case 'H':
+        duration += Number(TIME_GROUP.amount) * durations.hour;
+        break;
+      case 'M':
+        duration += Number(TIME_GROUP.amount) * durations.minute;
+        break;
+      case 'S':
+        duration += Number(TIME_GROUP.amount) * durations.second;
+        break;
       }
     }
 
@@ -232,12 +232,13 @@ export interface ExtraActionOptions {
 export interface OverrideActionOptions {
   user: User;
   'message-id': string;
-  'delete-message': boolean;
   'action': string;
   reason: string;
   rule: string;
   duration: string;
   'private-notes': string;
+  'keep-message': boolean;
+
 }
 
 export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuilder {
@@ -382,7 +383,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     (type === 'user'
       ? this.addUserParameters()
       : this.addMessageParameters()
-    ).addBaseParameters();
+    );
   }
 
   override readonly response = async (
@@ -401,7 +402,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
     // get basic options
-    const { DELETE_MESSAGE, ACTION, REASON, PRIVATE_NOTES, RULE } =
+    const { ACTION, REASON, PRIVATE_NOTES, RULE, KEEP_MESSAGE } =
       getBasicOptions(interaction, options);
 
     const [IS_VALID_DURATION, DURATION] = await validateDuration(interaction, options);
@@ -471,7 +472,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     // console.log(`Action Performed: ${ACTION} on ${USER.id}, not in cooldown (limit: ${DAILY_ACTION_LIMITS}) | Actions: ${activity.length}`);
 
-    if (DELETE_MESSAGE && message?.deletable) await message.delete();
+    if (!KEEP_MESSAGE && message?.deletable) await message.delete();
 
     if (!member) {
       if (ACTION === 'ban') {
@@ -489,6 +490,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             RULE,
             PRIVATE_NOTES ?? undefined,
             DURATION,
+            KEEP_MESSAGE,
             message
           );
           await sendToLogChannel(interaction.client, USER, LOG, action[3]);
@@ -496,7 +498,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             content: `Banned out-of-server member ${typeof bannedUser === 'object'
               ? `${(bannedUser as User).tag} (${bannedUser.id})`
               : bannedUser
-              }`,
+            }`,
           });
           return;
         } catch (e) {
@@ -519,6 +521,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           RULE,
           PRIVATE_NOTES ?? undefined,
           DURATION,
+          KEEP_MESSAGE,
           message
         )
         await sendToLogChannel(interaction.client, USER, LOG, action[3]);
@@ -550,6 +553,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       RULE,
       PRIVATE_NOTES ?? undefined,
       DURATION,
+      KEEP_MESSAGE,
       message
     );
 
@@ -585,26 +589,28 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
   };
 
-  private addUserParameters() {
-    return this.addUserOption(
+  private async addUserParameters() {
+    return await this.addUserOption(
       new SlashCommandUserOption()
         .setName('user')
         .setDescription('The user to take action on')
         .setRequired(true)
-    );
+    ).addBaseParameters();
   }
 
-  private addMessageParameters() {
-    return this.addBooleanOption(
-      new SlashCommandBooleanOption()
-        .setName('delete-message')
-        .setDescription('Whether to delete the specified message')
-        .setRequired(true)
-    ).addStringOption(
+  private async addMessageParameters() {
+    return (await this.addStringOption(
       new SlashCommandStringOption()
         .setName('message-id')
         .setDescription('The message to take action on')
         .setRequired(true)
+      // Unless we rewrite this to be more explicit, we need to call addBaseParameters here since
+      // optional options have to be after required options
+    ).addBaseParameters()).addBooleanOption(
+      new SlashCommandBooleanOption()
+        .setName('keep-message')
+        .setDescription('Whether to keep the specified message')
+        .setRequired(false)
     );
   }
 

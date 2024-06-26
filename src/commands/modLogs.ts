@@ -14,7 +14,7 @@ export default new ResponsiveContextMenuCommandBuilder()
     BUTTONS.modLogActionRow.components.forEach(i => _interactionHandler.addComponent(i));
 
     await interaction.followUp({
-      embeds: [await EMBEDS.moderationLogs(interaction.targetUser)],
+      embeds: [await EMBEDS.moderationLogs(interaction.targetUser, false)],
       components: [
         BUTTONS.modLogActionRow
       ],
