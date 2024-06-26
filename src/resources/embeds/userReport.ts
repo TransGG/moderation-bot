@@ -1,5 +1,6 @@
 import { EmbedBuilder, type Snowflake, User, VoiceState } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
+import { truncateForFields } from '@utils.js';
 
 function pushReportsCount(array: string[], length: number, prevTimeLength: number, time: string) {
   if (length && length > prevTimeLength)
@@ -28,7 +29,7 @@ export default async function messageReport(reporter: User, reason: string, user
     .setAuthor({ name: 'Reported User', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
     .setDescription(`> ${user.toString()} (\`${user.username}\`)`)
     .addFields([
-      { name: 'Reason', value: reason, inline: true },
+      { name: 'Reason', value: truncateForFields(`>>> ${reason}`), inline: true },
       { name: 'This user has been reported', value: await reportsCountSummary(user.id), inline: true },
       { name: '\u200b', value: '\u200b' },
       { name: 'Reported By', value: `${reporter.toString()} (\`${reporter.username}\`)`, inline: true },

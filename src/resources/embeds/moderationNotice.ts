@@ -1,6 +1,6 @@
 import { Colors, EmbedBuilder } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
-import { getRules } from '@utils.js';
+import { getRules, truncateForFields } from '@utils.js';
 
 export default async function moderationNotice(log: InstanceType<typeof COLLECTIONS.ModerationLog>) {
   // TODO: more centralized actions definition? possibly add them to templates.actionCommand.ts
@@ -32,7 +32,7 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
 
   if (log.messageInfo?.content) EMBED.addFields([{
     name: 'Infracting Message Content',
-    value: log.messageInfo.content,
+    value: truncateForFields(`>>> ${log.messageInfo.content}`),
     inline: false
   }]);
 

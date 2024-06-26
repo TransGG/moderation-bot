@@ -1,3 +1,4 @@
+import { truncateForFields } from '@utils.js';
 import { EmbedBuilder, Message, User } from 'discord.js';
 
 
@@ -9,7 +10,7 @@ export default async function calmdownNotice(staff_member: User, linked_message:
 
   if (reason) {
     EMBED.addFields([
-      { name: 'Reason', value: reason, inline: false },
+      { name: 'Reason', value: truncateForFields(`>>> ${reason}`), inline: false },
     ]);
   } else {
     EMBED.addFields([
