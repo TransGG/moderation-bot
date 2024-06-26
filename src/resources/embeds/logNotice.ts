@@ -1,6 +1,7 @@
 import { Client, Colors, DiscordAPIError, EmbedBuilder, User, time } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
 import { getRuleDescriptions, type ExtraActionOptions } from '@resources/commandTemplates/ActionCommand.js';
+import { truncateForFields } from '@utils.js';
 
 const durations = {
   week: 7 * 24 * 60 * 60 * 1000,
@@ -31,13 +32,6 @@ export default async function logNotice(client: Client, user: User, log: Instanc
   } catch (e) {
     if (!(e instanceof DiscordAPIError)) throw e;
   }
-
-  const reason =
-    log.reason.length <= 1020 ? log.reason : log.reason.slice(0, 1015) + '...';
-
-  const message_content =
-    (log.messageInfo?.content?.length as number) <= 1020 ? log.messageInfo?.content :
-      log.messageInfo?.content.slice(0, 1015) + '...';
 
   const title = `${extraActionOptions.emoji} ${extraActionOptions.pastTense} ${log.userState.username.replace('_', '\\_')}${log.userState.discriminator === '0' ? ''
     : '#' + log.userState.discriminator}`;
@@ -77,7 +71,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
 
   EMBED.addFields([
     { name: '\u200B', value: '\u200B' },
-    { name: 'Reason', value: `>>> ${reason}` },
+    { name: 'Reason', value: truncateForFields(`>>> ${log.reason}`) },
   ]);
 
   if (log.privateNotes) {
@@ -97,7 +91,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
     if (log.messageInfo.content) {
       EMBED.addFields([{
         name: 'Infracting Message Content',
-        value: `>>> ${message_content}`,
+        value: truncateForFields(`>>> ${log.messageInfo.content}`),
       }]);
     }
 

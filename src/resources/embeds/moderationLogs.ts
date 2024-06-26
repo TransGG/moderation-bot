@@ -1,8 +1,9 @@
 import { EmbedBuilder, User } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
-import { getCustomisations, getRules } from '@utils.js';
+import { getCustomisations, getRules, truncateForFields } from '@utils.js';
 
 // TODO: give more info and polish layout
+
 
 export default async function moderationLogs(user: User, page = 1) {
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
@@ -23,19 +24,19 @@ export default async function moderationLogs(user: User, page = 1) {
       return [
         {
           name: ruleText,
-          value: log.reason,
+          value: truncateForFields(log.reason),
           inline: true
         },
         {
           name: 'Private Notes',
-          value: log.privateNotes ?? 'None given',
+          value: truncateForFields(log.privateNotes ?? 'None given'),
           inline: true
         },
         {
           name: `<t:${Math.floor(log.timestamp / 1000)}:R>`,
           value: log.action,
           inline: true
-        }
+        },
       ]
     }).flat());
   return EMBED;
