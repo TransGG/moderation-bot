@@ -19,9 +19,16 @@ export default async function logNotice(client: Client, moderator: User, users: 
 
 
   if (attachmentURL) {
+    const url = new URL(attachmentURL);
+    const path = url.pathname; // format: /attachments/<channel>/<message>/<filename>
+
+    const ex = url.searchParams.get('ex');
+    const is = url.searchParams.get('is');
+    const hm = url.searchParams.get('hm');
+
     EMBED.addFields([{
       name: 'Purge Transcript',
-      value: `[Purge Transcript](https://tickettool.xyz/direct?url=${attachmentURL})`,
+      value: `[Purge Transcript](https://tickettool.xyz/transcript/v1/${path.split('/').slice(2).join('/')}/${ex}/${is}/${hm})`,
       inline: true,
     }]);
   }
