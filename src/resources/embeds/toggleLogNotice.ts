@@ -10,7 +10,7 @@ const pastTenseActions: Record<string, string> = {
   kick: 'Kicked',
   ban: 'Banned',
   add_note: 'Note added',
-  verify: 'Sepcially verified', //legacy
+  verify: 'Specially verified', //legacy
   add_mature: 'Received the mature role', // legacy
 }
 
