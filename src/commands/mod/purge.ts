@@ -1,26 +1,33 @@
+import COLLECTIONS from '@database/collections.js';
 import { SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
-import { ChannelType, GuildMemberRoleManager, Message, TextChannel } from 'discord.js';
-import { getCustomisations, getSnowflakeMap } from '@utils.js';
 import { durations, sendToSrNotifyChannel } from '@resources/commandTemplates/ActionCommand.js';
-import COLLECTIONS from '@database/collections.js';
 import EMBEDS from '@resources/embeds.js';
+import { getCustomisations, getSnowflakeMap } from '@utils.js';
+import { ChannelType, GuildMemberRoleManager, Message, SnowflakeUtil, type GuildTextBasedChannel } from 'discord.js';
 import createLogFile from '../../utils/createLogFile.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
   .setName('purge')
   .setDescription('Purge messages in a channel.')
-  .addIntegerOption(new SlashCommandIntegerOption()
-    .setName('amount')
-    .setDescription('The amount of messages to purge. (Max 100)')
-    .setRequired(true)
-    .setMinValue(1)
-    .setMaxValue(100)
-  )
   .addStringOption(new SlashCommandStringOption()
     .setName('reason')
     .setDescription('The reason for purging messages.')
     .setRequired(true)
+  )
+  .addIntegerOption(new SlashCommandIntegerOption()
+    .setName('amount')
+    .setDescription('The amount of messages to purge.')
+    .setMinValue(1)
+    .setMaxValue(100)
+  )
+  .addStringOption(new SlashCommandStringOption()
+    .setName('first')
+    .setDescription('The ID of the first message to purge.')
+  )
+  .addStringOption(new SlashCommandStringOption()
+    .setName('last')
+    .setDescription('The ID of the last message to purge.')
   )
   .addUserOption(new SlashCommandUserOption()
     .setName('user')
@@ -33,8 +40,7 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     .setRequired(false)
   )
   .setResponse(async (interaction, _interactionHandler, _command) => {
-    if (!interaction.isChatInputCommand() || !interaction.channel || !(interaction.channel instanceof TextChannel)) return;
-    if (!interaction.guild) return;
+    if (!interaction.isChatInputCommand() || !interaction.channel?.isTextBased() || interaction.channel.isDMBased()) return;
 
     await interaction.deferReply({ ephemeral: true });
 
@@ -71,7 +77,11 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       return;
     }
 
-    const amount = interaction.options.getInteger('amount', true);
+    const amount = interaction.options.getInteger('amount', false);
+
+    const first = interaction.options.getString('first', false);
+
+    const last = interaction.options.getString('last', false);
 
     const user = interaction.options.getUser('user', false);
 
@@ -79,45 +89,66 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     const privateNotes = interaction.options.getString('private-notes', false);
 
-    await COLLECTIONS.UserLog.newModLog(
-      interaction.user.id,
-      user ?? interaction.user,
-      'purge',
-      reason,
-      'other',
-      privateNotes ?? undefined,
-      undefined,
-      undefined
-    );
+    if (amount && first && last) {
+      await interaction.followUp({
+        content: 'You cannot specify the amount of messages to purge if you also select a first and last message.',
+        ephemeral: true
+      });
 
-    const channel_messages = await interaction.channel.messages.fetch({ limit: user ? 100 : amount })
-    const filtered_messages = channel_messages.filter(m => m.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 13)
+      return;
+    }
 
-    if (filtered_messages.size === 0) {
+    if (!(amount || first && last)) {
+      await interaction.followUp({
+        content: 'You must either specify an amount of messages or both the first and last message.',
+        ephemeral: true
+      });
+
+      return;
+    }
+
+    if (user) {
+      await COLLECTIONS.UserLog.newModLog(
+        interaction.user.id,
+        user,
+        'purge',
+        reason,
+        'other',
+        privateNotes ?? undefined,
+        undefined,
+        undefined
+      );
+    }
+
+    const messages = await getMessagesToPurge(interaction.channel, amount, first, last);
+    const user_filtered_messages = user ? messages.filter(m => m.author.id === user.id) : messages;
+    const filtered_messages = user_filtered_messages.filter(m => m.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 14 + 10000);
+
+    if (filtered_messages.length === 0) {
       await interaction.followUp({
         content: 'Unable to purge messages, no messages found that are less than 2 weeks old.',
         ephemeral: true
       });
+
+      return;
+    } else if (filtered_messages.length > 100) {
+      await interaction.followUp({
+        content: 'Unable to purge messages, too many messages were found (> 100).',
+        ephemeral: true
+      });
+
       return;
     }
 
-    let users = [...new Set(filtered_messages.map(m => m.author))]
+    await interaction.channel.bulkDelete(filtered_messages);
 
-    if (!user) await interaction.channel.bulkDelete(filtered_messages)
-    else if (interaction.guild?.members.cache.get(user.id)) {
-      const usersMessages: Message[] = []
-      const channelUserMessages = filtered_messages.filter(m => m.author.id === user.id)
-      channelUserMessages.forEach(msg => usersMessages.push(msg))
-      users = [...new Set(channelUserMessages.map(m => m.author))]
-      if (usersMessages.length > filtered_messages.size) usersMessages.splice(filtered_messages.size)
-      await interaction.channel.bulkDelete(usersMessages)
-    }
+    const users = [...new Set(filtered_messages.map(m => m.author))];
 
     await interaction.channel.send({
-      embeds: [await EMBEDS.purgeNotice(users, filtered_messages.size, reason)]
+      embeds: [await EMBEDS.purgeNotice(users, filtered_messages.length, reason)]
     })
 
-    const attachment = createLogFile(interaction.guild, interaction.channel, Array.from(filtered_messages.values()), users, user ?? undefined);
+    const attachment = createLogFile(interaction.channel, Array.from(filtered_messages), users, user ?? undefined);
 
     const LOG_CHANNEL_CATEGORIES = ['purge'];
 
@@ -145,14 +176,14 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
       try {
         await LOG_CHANNEL.send({
-          embeds: [await EMBEDS.purgeLogs(interaction.client, interaction.user, users, reason, filtered_messages.size, privateNotes != null ? privateNotes : undefined)],
+          embeds: [await EMBEDS.purgeLogs(interaction.client, interaction.user, users, reason, filtered_messages.length, privateNotes ?? undefined)],
           allowedMentions: { parse: [] },
           files: [attachment]
         }).then(async msg => {
           const attachmentURL = msg.attachments.first()?.url
           if (attachmentURL) {
             msg.edit({
-              embeds: [await EMBEDS.purgeLogs(interaction.client, interaction.user, users, reason, filtered_messages.size, privateNotes != null ? privateNotes : undefined, attachmentURL)],
+              embeds: [await EMBEDS.purgeLogs(interaction.client, interaction.user, users, reason, filtered_messages.length, privateNotes ?? undefined, attachmentURL)],
               allowedMentions: { parse: [] },
             })
           }
@@ -163,7 +194,26 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     }
 
     await interaction.followUp({
-      content: `Purged ${filtered_messages.size} messages${user ? ` from <@${user.id}>` : ''}.${channel_messages.size != filtered_messages.size ? '\n(Note: Some messages were older than 2 weeks and could not be deleted)' : ''}`,
+      content: `Purged ${filtered_messages.length} messages${user ? ` from <@${user.id}>` : ''}.${filtered_messages.length < user_filtered_messages.length ? '\n(Note: Some messages were older than 2 weeks and could not be deleted)' : ''}`,
       ephemeral: true
     });
   });
+
+async function getMessagesToPurge(channel: GuildTextBasedChannel, amount: number | null, first: string | null, last: string | null): Promise<Message[]> {
+  const messages = first && last ? [
+    await channel.messages.fetch(first).catch(() => []),
+    await channel.messages.fetch(last).catch(() => []),
+    ...(await channel.messages.fetch({ after: first, before: last })).values()
+  ].flat().filter(m => m.createdTimestamp <= SnowflakeUtil.timestampFrom(last))
+    : first && amount ? [
+      await channel.messages.fetch(first).catch(() => []),
+      ...(await channel.messages.fetch({ after: first, limit: amount - 1 })).values()
+    ].flat() : last && amount ? [
+      await channel.messages.fetch(last).catch(() => []),
+      ...(await channel.messages.fetch({ before: last, limit: amount - 1 })).values()
+    ].flat() : amount ? [
+      ...(await channel.messages.fetch({ limit: amount })).values()
+    ] : [];
+
+  return [...new Set(messages)];
+}

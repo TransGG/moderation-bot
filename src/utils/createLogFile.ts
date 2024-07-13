@@ -1,6 +1,7 @@
-import { AttachmentBuilder, User, type Guild, type Message, type TextChannel } from 'discord.js';
+import { AttachmentBuilder, User, type GuildTextBasedChannel, type Message } from 'discord.js';
 
-export default function createLogFile(server: Guild, channel: TextChannel, messages: Message[], users: User[], deletedUser?: User) {
+export default function createLogFile(channel: GuildTextBasedChannel, messages: Message[], users: User[], deletedUser?: User) {
+  const guild = channel.guild;
 
   const data = {
     channel: {
@@ -8,9 +9,9 @@ export default function createLogFile(server: Guild, channel: TextChannel, messa
       id: channel.id
     },
     server: {
-      name: server.name,
-      id: server.id,
-      icon: server.icon
+      name: guild.name,
+      id: guild.id,
+      icon: guild.icon
     },
     messages: (messages.map(m => {
       return {
@@ -40,7 +41,7 @@ export default function createLogFile(server: Guild, channel: TextChannel, messa
     return letData;
   }
 
-  const extraInfo = `<Server-Info>\n  Server: ${server.name} (${server.id})\n  Channel: ${channel.name} (${channel.id})\n  Purged: ${messages.length} Messages\n\n<Affected-Users>\n  ${users.map(u => `- ${u.tag} (${u.id})`).join('\n  ')}\n\n`
+  const extraInfo = `<Server-Info>\n  Server: ${guild.name} (${guild.id})\n  Channel: ${channel.name} (${channel.id})\n  Purged: ${messages.length} Messages\n\n<Affected-Users>\n  ${users.map(u => `- ${u.tag} (${u.id})`).join('\n  ')}\n\n`
   const start = '<Base-Transcript>\n  <script src="https://tickettool.xyz/transcript/transcript.bundle.min.obv.js"></script><script type="text/javascript">'
   const end = 'window.Convert(messages, channel, server)</script>'
   const attachment = new AttachmentBuilder(Buffer.from(`${extraInfo}${start}${jtb64(data)}${end}`, 'utf8'), { name: 'purge-log.html' });
