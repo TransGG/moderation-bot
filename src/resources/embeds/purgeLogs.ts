@@ -1,3 +1,4 @@
+import { truncateForFields } from '@utils.js';
 import { Client, Colors, DiscordAPIError, EmbedBuilder, User } from 'discord.js';
 
 export default async function logNotice(client: Client, moderator: User, users: User[], reason: string, amount: number, privateNotes?: string, attachmentURL?: string) {
@@ -34,14 +35,14 @@ export default async function logNotice(client: Client, moderator: User, users: 
   }
 
   EMBED.addFields([
-    { name: 'Affected Users', value: `>>> ${users.map(u => `<@${u.id}> (\`${u.username}\`)`).join('\n')}`, inline: false },
-    { name: 'Reason', value: `>>> ${reason}`, inline: false }
+    { name: 'Affected Users', value: truncateForFields(`>>> ${users.map(u => `<@${u.id}> (\`${u.username}\`)`).join('\n')}`), inline: false },
+    { name: 'Reason', value: truncateForFields(`>>> ${reason}`), inline: false }
   ]);
 
   if (privateNotes) {
     EMBED.addFields([{
       name: 'Private Notes',
-      value: `>>> ${privateNotes}`,
+      value: truncateForFields(`>>> ${privateNotes}`),
       inline: false,
     }]);
   }

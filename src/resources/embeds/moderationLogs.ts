@@ -1,8 +1,9 @@
 import { EmbedBuilder, User } from 'discord.js';
 import COLLECTIONS from '@database/collections.js';
-import { getCustomisations, getRules } from '@utils.js';
+import { getCustomisations, getRules, truncateForFields } from '@utils.js';
 
 // TODO: give more info and polish layout
+
 
 const pastTenseActions: Record<string, string> = {
   warn: 'Warned',
@@ -43,19 +44,20 @@ export default async function moderationLogs(user: User, showHidden = false, pag
       return [
         {
           name: `${STARTING_INDEX + index + 1}. ${ruleText}`,
-          value: log.reason,
+          value: truncateForFields(log.reason),
+
           inline: true
         },
         {
           name: 'Private Notes',
-          value: log.privateNotes ?? 'None given',
+          value: truncateForFields(log.privateNotes ?? 'None given'),
           inline: true
         },
         {
           name: `${pastTenseActions[log.action] ?? 'ERROR'} <t:${Math.floor(log.timestamp / 1000)}:R>`,
           value: messageDeletedText,
           inline: true
-        }
+        },
       ]
     }).flat());
   return EMBED;

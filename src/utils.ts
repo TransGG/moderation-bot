@@ -93,3 +93,8 @@ export function watchAndReloadCommands(interactionHandler: InteractionHandler) {
 export function t(strings: TemplateStringsArray, ...interpolations: any[]) {
   return hAddTimestamp(strings, interpolations);
 }
+
+export function truncateForFields(s: string) {
+    return s.length <= 1020 ? s :
+    s.slice(0, 1015) + '...';
+}
