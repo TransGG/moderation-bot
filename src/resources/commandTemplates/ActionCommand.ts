@@ -2,7 +2,6 @@ import {
   type Interaction,
   Client,
   GuildMember,
-  Message,
   User,
   Colors
 } from 'discord.js';
@@ -409,26 +408,19 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     if (!IS_VALID_DURATION) return;
 
-    let message: Message | undefined;
-    if (command.type === 'message') {
-      try {
-        const messageId = options['message-id'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('message-id', true) : null);
-        if (messageId === null) throw new Error('For message ActionCommands, message-id must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
-        message = await interaction.channel?.messages.fetch(
-          messageId
-        );
-      } catch {
-        // If the message isn't in the same channel we won't be able to fetch it
-      }
-      if (!message) {
-        await interaction.followUp({
-          content: 'Message not found',
-          ephemeral: true,
-        });
-        return;
-      }
-    }
+    // command.type !== 'message' is here because it's easier to see why the null happens
+    const messageId = command.type !== 'message' ? null :
+      options['message-id'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('message-id', true) : null);
+    const message = command.type !== 'message' ? undefined :
+      messageId !== null ? await interaction.channel?.messages.fetch(messageId) : undefined;
 
+    if (messageId && !message) {
+      await interaction.followUp({
+        content: 'Message not found',
+        ephemeral: true,
+      });
+      throw new Error('For message ActionCommands, message-id must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
+    }
 
     const USER = message
       ? message.author
@@ -498,7 +490,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             content: `Banned out-of-server member ${typeof bannedUser === 'object'
               ? `${(bannedUser as User).tag} (${bannedUser.id})`
               : bannedUser
-            }`,
+              }`,
           });
           return;
         } catch (e) {
