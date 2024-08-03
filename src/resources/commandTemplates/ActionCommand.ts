@@ -169,21 +169,21 @@ async function validateDuration(
         TIME.match(/(?<amount>\d+(\.\d+)?)(?<unit>[DHMS])/i)?.groups
       );
       switch (TIME_GROUP.unit.toUpperCase()) {
-      case 'W':
-        duration += Number(TIME_GROUP.amount) * durations.week;
-        break;
-      case 'D':
-        duration += Number(TIME_GROUP.amount) * durations.day;
-        break;
-      case 'H':
-        duration += Number(TIME_GROUP.amount) * durations.hour;
-        break;
-      case 'M':
-        duration += Number(TIME_GROUP.amount) * durations.minute;
-        break;
-      case 'S':
-        duration += Number(TIME_GROUP.amount) * durations.second;
-        break;
+        case 'W':
+          duration += Number(TIME_GROUP.amount) * durations.week;
+          break;
+        case 'D':
+          duration += Number(TIME_GROUP.amount) * durations.day;
+          break;
+        case 'H':
+          duration += Number(TIME_GROUP.amount) * durations.hour;
+          break;
+        case 'M':
+          duration += Number(TIME_GROUP.amount) * durations.minute;
+          break;
+        case 'S':
+          duration += Number(TIME_GROUP.amount) * durations.second;
+          break;
       }
     }
 
