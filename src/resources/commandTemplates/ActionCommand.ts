@@ -3,7 +3,8 @@ import {
   Client,
   GuildMember,
   User,
-  Colors
+  Colors,
+  GuildMemberRoleManager,
 } from 'discord.js';
 import {
   SlashCommandBooleanOption,
@@ -399,6 +400,18 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
 
+    const ALLOWED = interaction.member?.roles instanceof GuildMemberRoleManager ?
+      interaction.member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles) :
+
+      interaction.member?.roles instanceof Array ?
+        SNOWFLAKE_MAP.Staff_Roles.some(r => (<string[]>interaction.member?.roles).includes(r)) :
+        undefined;
+
+    if (!ALLOWED) {
+      await interaction.followUp("You do not have permission to run moderator commands. Please contact a developer if you believe this is a mistake.");
+      return;
+    }
+
     // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
     // get basic options
     const { ACTION, REASON, PRIVATE_NOTES, RULE, KEEP_MESSAGE } =
@@ -411,6 +424,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     // command.type !== 'message' is here because it's easier to see why the null happens
     const messageId = command.type !== 'message' ? null :
       options['message-id'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('message-id', true) : null);
+
     const message = command.type !== 'message' ? undefined :
       messageId !== null ? await interaction.channel?.messages.fetch(messageId) : undefined;
 
@@ -426,12 +440,9 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
       ? message.author
       : options['user'] ?? (interaction.isChatInputCommand() ? interaction.options.getUser('user', true) : null);
     if (USER === null) throw new Error('USER must be defined either by using a CommandInteraction, an OverrideActionOptions with it set or a message ActionCommand where it can be inferred from the message author');
-    let member: GuildMember | undefined;
-    try {
-      member = await interaction.guild?.members.fetch(USER.id);
-    } catch {
-      // Sometimes we won't be able to fetch a member (i.e. if they aren't in the server).
-    }
+
+    // Sometimes we won't be able to fetch a member (i.e. if they aren't in the server).
+    const member = await interaction.guild?.members.fetch(USER.id).catch()
 
     const action = ActionCommand.actions.find(
       (action) => action[0].value === ACTION
