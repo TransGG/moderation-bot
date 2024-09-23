@@ -76,7 +76,7 @@ export async function sendToSrNotifyChannel(
   try {
     await LOG_CHANNEL.send({
       content: message,
-      allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
+      allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Admin_Roles },
     });
   } catch {
     // If sending fails, it's far more important to ignore it and do the action anyway then worry and stop
@@ -484,7 +484,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
         ephemeral: true,
       });
 
-      await sendToSrNotifyChannel(interaction.client, `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}\nModerator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} ${ACTION} actions in the last 24 hours.`)
+      await sendToSrNotifyChannel(interaction.client, `${SNOWFLAKE_MAP.Admin_Roles.map(u => `<@&${u}>`).join(', ')}\nModerator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} ${ACTION} actions in the last 24 hours.`)
 
       return;
     }

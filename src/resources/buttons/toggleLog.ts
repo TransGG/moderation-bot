@@ -58,14 +58,14 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
 
         try {
           sr_notify_channel.send({
-            content: `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}`,
+            content: `${SNOWFLAKE_MAP.Admin_Roles.map(u => `<@&${u}>`).join(', ')}`,
             embeds: [
               await EMBEDS.toggleLogNotice(
                 user,
                 infraction.toString(),
                 interaction.user,
               )],
-            allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
+            allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Admin_Roles },
           });
 
         } catch (e) {
@@ -117,14 +117,14 @@ export default new ActionRowBuilder<ResponsiveMessageButton>()
 
         try {
           sr_notify_channel.send({
-            content: `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}`,
+            content: `${SNOWFLAKE_MAP.Admin_Roles.map(u => `<@&${u}>`).join(', ')}`,
             embeds: [
               await EMBEDS.toggleLogNotice(
                 user,
                 infraction.toString(),
                 interaction.user,
               )],
-            allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
+            allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Admin_Roles },
           });
 
         } catch (e) {

@@ -108,14 +108,14 @@ export default new ResponsiveModal()
     }
     try {
       sr_notify_channel.send({
-        content: `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}`,
+        content: `${SNOWFLAKE_MAP.Admin_Roles.map(u => `<@&${u}>`).join(', ')}`,
         embeds: [
           await EMBEDS.calmdownNotice(
             interaction.user,
             sent_message,
             (interaction.components[0]?.components[0] as TextInputModalData).value
           )],
-        allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Sr_Staff_Roles },
+        allowedMentions: { parse: [], roles: SNOWFLAKE_MAP.Admin_Roles },
       });
 
     } catch (e) {

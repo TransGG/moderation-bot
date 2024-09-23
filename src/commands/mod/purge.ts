@@ -77,7 +77,7 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
         ephemeral: true,
       });
 
-      await sendToSrNotifyChannel(interaction.client, `${SNOWFLAKE_MAP.Sr_Staff_Roles.map(u => `<@&${u}>`).join(', ')}\nModerator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} purge actions in the last 24 hours.`)
+      await sendToSrNotifyChannel(interaction.client, `${SNOWFLAKE_MAP.Admin_Roles.map(u => `<@&${u}>`).join(', ')}\nModerator ${interaction.user} has exceeded their daily action limit of ${DAILY_ACTION_LIMITS} purge actions in the last 24 hours.`)
 
       return;
     }
