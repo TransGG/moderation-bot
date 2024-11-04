@@ -144,10 +144,6 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     const users = [...new Set(filtered_messages.map(m => m.author))];
 
-    await interaction.channel.send({
-      embeds: [await EMBEDS.purgeNotice(users, filtered_messages.length, reason)]
-    })
-
     const attachment = createLogFile(interaction.channel, Array.from(filtered_messages), users, user ?? undefined);
 
     const LOG_CHANNEL_CATEGORIES = ['purge'];
