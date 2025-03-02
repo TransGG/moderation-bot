@@ -47,6 +47,15 @@ export default async function modEditRoleRow(roles: RoleInfo[], member: GuildMem
 
           await member.roles.set([...memberRoles], `Mod Edit Roles - ${interaction.user.id}`);
 
+          if (changelog === '') {
+            await interaction.update({
+              content: `Role update confirmed for ${userMention(member.id)} with no roles modified.`,
+              components: []
+            });
+
+            return;
+          }
+
           await interaction.update({
             content: `Roles updated for ${userMention(member.id)}\n\`\`\`diff\n${changelog}\`\`\``,
             components: []
