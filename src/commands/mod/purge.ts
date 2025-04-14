@@ -1,5 +1,5 @@
 import COLLECTIONS from '@database/collections.js';
-import { SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
+import { SlashCommandBooleanOption, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandUserOption } from '@discordjs/builders';
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import { durations, sendToSrNotifyChannel } from '@resources/commandTemplates/ActionCommand.js';
 import EMBEDS from '@resources/embeds.js';
@@ -37,6 +37,11 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
   .addStringOption(new SlashCommandStringOption()
     .setName('private-notes')
     .setDescription('Private notes to add')
+    .setRequired(false)
+  )
+  .addBooleanOption(new SlashCommandBooleanOption()
+    .setName('post-public-notice')
+    .setDescription('Set to true to post a public notice in the affected channel')
     .setRequired(false)
   )
   .setResponse(async (interaction, _interactionHandler, _command) => {
@@ -88,6 +93,8 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     const reason = interaction.options.getString('reason', true);
 
     const privateNotes = interaction.options.getString('private-notes', false);
+
+    const postPublicNotice = interaction.options.getBoolean('post-public-notice', false);
 
     if (amount && first && last) {
       await interaction.followUp({
@@ -144,9 +151,11 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     const users = [...new Set(filtered_messages.map(m => m.author))];
 
-    await interaction.channel.send({
-      embeds: [await EMBEDS.purgeNotice(users, filtered_messages.length, reason)]
-    })
+    if (postPublicNotice) {
+      await interaction.channel.send({
+        embeds: [await EMBEDS.purgeNotice(users, filtered_messages.length, reason)]
+      })
+    }
 
     const attachment = createLogFile(interaction.channel, Array.from(filtered_messages), users, user ?? undefined);
 
