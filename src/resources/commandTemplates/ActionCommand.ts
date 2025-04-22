@@ -430,13 +430,25 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     }
 
 
-    const USER = message
+    let USER = message
       ? message.author
       : options['user'] ?? (interaction.isChatInputCommand() ? interaction.options.getUser('user', true) : null);
     if (USER === null) throw new Error('USER must be defined either by using a CommandInteraction, an OverrideActionOptions with it set or a message ActionCommand where it can be inferred from the message author');
+    if (USER.bot && message?.webhookId) {
+      const request = await fetch(`https://api.pluralkit.me/v2/messages/${message.id}`);
+      if (request.ok) {
+        const data = await request.json();
+        try {
+          const userId = data.sender;
+          USER = await interaction.client.users.fetch(userId);
+        } catch {
+          // Ignore a failure to fetch the user ID provided by PluralKit
+        }
+      }
+    }
     if (USER.bot) {
       await interaction.followUp({
-        content: 'The targeted user is a bot. If you are targeting a PluralKit message, please delete the message and warn the system\'s account manually. You are not permitted to target a bot; please speak to an admin if a bot needs to be removed.',
+        content: 'The targeted user is a bot and a PluralKit user was not identified. This seems unintentional, but if you need to remove a bot from the server, please contact an admin instead.',
         ephemeral: true,
       });
       return;
