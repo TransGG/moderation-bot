@@ -5,6 +5,7 @@ import type ModerationLogT from './userLogs/moderationLogs.js';
 import type ReportLogT from './userLogs/reportLogs.js';
 import DATABASE from '../database.js';
 import { t } from '@utils.js';
+import config from 'configs/core.js';
 
 const DATABASE_COLLECTION = DATABASE.collection('user-logs');
 export const ModerationLog =
@@ -24,6 +25,34 @@ export default class UserLog {
 
   public constructor(userID: Snowflake) {
     this.userID = userID;
+  }
+
+  public static async getUserAndConnectedLogs(userID: Snowflake) {
+    const request = await fetch(config.Alt_Account_Sheet_URL);
+    const text = request.ok ? await request.text() : '';
+    const rows = text.split('\n')
+      .slice(1)
+      .map((line) => line.split(','))
+      .map((row) => [row[1]?.trim(), row[4]?.trim()] as [string, string]);
+    const graph = new Map<string, string[]>();
+    for (const [a, b] of rows) {
+      graph.set(a, [...graph.get(a) ?? [], b]);
+      graph.set(b, [...graph.get(b) ?? [], a]);
+    }
+    const ids = [userID];
+    const open = [userID];
+    while (open.length > 0) {
+      const id = open.shift();
+      if (!id) break;
+      for (const conn of graph.get(id) ?? []) {
+        if (ids.includes(conn)) continue;
+        ids.push(conn);
+        open.push(conn);
+      }
+    }
+    return await DATABASE_COLLECTION.find({ userID: { $in: ids } })
+      .map((log) => Object.setPrototypeOf(log, UserLog.prototype) as UserLog)
+      .toArray();
   }
 
   public static async getUserLog(userID: Snowflake) {
