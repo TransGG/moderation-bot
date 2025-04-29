@@ -3,6 +3,7 @@ import type snowflakeMap from './snowflakeMapType';
 const config: snowflakeMap = {
   Staff_Roles: [],
   Sr_Staff_Roles: [],
+  Admin_Roles: [],
   Report_Notification_Roles: [],
   Report_Banned_Roles: [],
   Reports_Channels: [],
