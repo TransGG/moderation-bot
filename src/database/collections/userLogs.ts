@@ -16,6 +16,26 @@ export const ReportLog =
   (await import(t`./userLogs/reportLogs.js`))
     .default as typeof ReportLogT;
 
+let cachedAltSwitchLogs: Map<string, string[]> | undefined;
+let cachedAltLogsAt = 0;
+
+async function fetchAltSwitchLogs() {
+  if (Date.now() - cachedAltLogsAt < 5 * 60 * 1000 && cachedAltSwitchLogs) return cachedAltSwitchLogs;
+  const request = await fetch(config.Alt_Account_Sheet_URL);
+  const text = request.ok ? await request.text() : '';
+  const rows = text.split('\n')
+    .slice(1)
+    .map((line) => line.split(','))
+    .map((row) => [row[1]?.trim(), row[4]?.trim()] as [string, string]);
+  const graph = new Map<string, string[]>();
+  for (const [a, b] of rows) {
+    graph.set(a, [...graph.get(a) ?? [], b]);
+    graph.set(b, [...graph.get(b) ?? [], a]);
+  }
+  cachedAltLogsAt = Date.now();
+  return (cachedAltSwitchLogs = graph);
+}
+
 export default class UserLog {
   public readonly _id?: ObjectId;
   public readonly userID: Snowflake;
@@ -28,17 +48,7 @@ export default class UserLog {
   }
 
   public static async getUserAndConnectedLogs(userID: Snowflake) {
-    const request = await fetch(config.Alt_Account_Sheet_URL);
-    const text = request.ok ? await request.text() : '';
-    const rows = text.split('\n')
-      .slice(1)
-      .map((line) => line.split(','))
-      .map((row) => [row[1]?.trim(), row[4]?.trim()] as [string, string]);
-    const graph = new Map<string, string[]>();
-    for (const [a, b] of rows) {
-      graph.set(a, [...graph.get(a) ?? [], b]);
-      graph.set(b, [...graph.get(b) ?? [], a]);
-    }
+    const graph = await fetchAltSwitchLogs();
     const ids = [userID];
     const open = [userID];
     while (open.length > 0) {
