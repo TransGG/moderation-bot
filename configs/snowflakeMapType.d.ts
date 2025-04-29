@@ -11,9 +11,14 @@ export default interface snowflakeMap {
   Staff_Roles: string[];
 
   /**
-   * Staff roles to notify when daily limits are reached
+   * Grants access to senior moderator functions
    */
   Sr_Staff_Roles: string[];
+
+  /**
+   * Admins to notify for limit alerts, unbans, etc.
+   */
+  Admin_Roles: string[];
 
   /**
    * Roles that will be pinged when a message is reported
