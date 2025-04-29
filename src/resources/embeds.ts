@@ -12,6 +12,7 @@ import purgeNotice from './embeds/purgeNotice.js';
 import purgeLogs from './embeds/purgeLogs.js';
 import toggleLog from './embeds/toggleLog.js';
 import toggleLogNotice from './embeds/toggleLogNotice.js';
+import unbanNotice from './embeds/unbanNotice.js';
 
 const EMBEDS = {
   messageReport,
@@ -25,6 +26,7 @@ const EMBEDS = {
   purgeLogs,
   toggleLog,
   toggleLogNotice,
+  unbanNotice,
 };
 
 // TODO: a more centralised way to reload?
