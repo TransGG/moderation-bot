@@ -70,4 +70,9 @@ export default interface snowflakeMap {
    * A list of roles we allow mods to add / remove on users.
    */
   Mod_Editable_Roles: Record<string, string>;
+
+  /**
+   * A map from time capsule channels to their respective participant roles.
+   */
+  Time_Capsule_Roles: Record<string, string>;
 }
