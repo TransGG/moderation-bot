@@ -4,6 +4,7 @@ import { oneLineTrim } from 'common-tags';
 import { Client, IntentsBitField } from 'discord.js';
 import InteractionHandler from './interactionHandling/interactionHandler.js';
 import { getCommands, getCoreConf, getAdvancedConf, getSnowflakeMap, watchAndReloadCommands } from './utils.js';
+import { loadEvents } from 'events/loadEvents.js';
 
 const CORE_CONF = await getCoreConf();
 const SNOWFLAKE_MAP = await getSnowflakeMap();
@@ -16,7 +17,10 @@ const client = new Client({
     IntentsBitField.Flags.GuildMessages
   ]
 
-}).once('ready', () => console.log(chalk.greenBright('Logged in'))) as
+}).once('ready', (bot) => {
+  console.log(chalk.greenBright('Logged in'));
+  loadEvents(bot);
+}) as
   Client & { readonly interactionHandler: InteractionHandler };
 
 // command handling
