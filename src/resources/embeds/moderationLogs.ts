@@ -20,7 +20,7 @@ export default async function moderationLogs(user: User, showHidden = false, pag
   const LOGS = await COLLECTIONS.UserLog.getUserAndConnectedLogs(user.id);
   const entries = LOGS.flatMap((log) => log.moderationLogs.map((entry) => ({ userID: log.userID, ...entry }))).sort((a, b) => a.timestamp - b.timestamp);
 
-  const PAGES = Math.ceil(LOGS.length / LPP);
+  const PAGES = Math.ceil(entries.length / LPP);
   const STARTING_INDEX = (page - 1) * LPP;
   const RULES = await getRules();
 
