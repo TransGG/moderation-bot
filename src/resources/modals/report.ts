@@ -50,14 +50,26 @@ export default new ResponsiveModal()
       }
 
       if (MESSAGE) {
-        await COLLECTIONS.UserLog.newReportLog(REASON, interaction.user, MESSAGE.author, MESSAGE);
+        let reportedUser = MESSAGE.author;
+
+        if (MESSAGE.webhookId) {
+          // this is a webhook message, so try to ask PluralKit for the original author
+          const request = await fetch(`https://api.pluralkit.me/v2/messages/${MESSAGE.id}`);
+          if (request.ok) {
+            const data = await request.json();
+            const originalUser = interaction.client.users.cache.get(data.sender);
+            if (originalUser) reportedUser = originalUser;
+          }
+        }
+
+        await COLLECTIONS.UserLog.newReportLog(REASON, interaction.user, reportedUser, MESSAGE);
 
         await Promise.all(SNOWFLAKE_MAP.Reports_Channels.map(async id => {
           const CHANNEL = await interactionHandler.client.channels.fetch(id);
           if (!CHANNEL?.isTextBased()) return;
           const reportLog = await CHANNEL.send({
             content: SNOWFLAKE_MAP.Report_Notification_Roles.map(r => `<@&${r}>`).join('\n'),
-            embeds: [await EMBEDS.messageReport(interaction.user, REASON, <Message>MESSAGE, GUILD)],
+            embeds: [await EMBEDS.messageReport(interaction.user, reportedUser, REASON, <Message>MESSAGE, GUILD)],
             components: [
               BUTTONS.reportActionRow
             ],

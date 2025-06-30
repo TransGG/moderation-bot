@@ -23,26 +23,13 @@ async function reportsCountSummary(userID: Snowflake) {
   return LINES.join('\n');
 }
 
-export default async function messageReport(reporter: User, reason: string, message: Message, guild: Guild) {
-  let sender = message.author.id;
-
-  if (message.webhookId) {
-    // this is a webhook message, so try to ask PluralKit for the original author
-    const request = await fetch(`https://api.pluralkit.me/v2/messages/${message.id}`);
-    if (request.ok) {
-      const data = await request.json();
-      sender = data.sender;
-    }
-  }
-
-  const author = sender === message.author.id ? message.author : guild.client.users.cache.get(sender);
-
+export default async function messageReport(reporter: User, reportedUser: User, reason: string, message: Message, guild: Guild) {
   const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Reported User', iconURL: author?.displayAvatarURL() ?? '', url: `https://discord.com/users/${sender}` })
-    .setDescription(`> <@${sender}> (\`${author?.username}\`)`)
+    .setAuthor({ name: 'Reported User', iconURL: reportedUser.displayAvatarURL() ?? '', url: `https://discord.com/users/${reportedUser.id}` })
+    .setDescription(`> ${reportedUser.toString()} (\`${reportedUser.username}\`)`)
     .addFields([
       { name: 'Reason', value: reason, inline: true },
-      { name: 'This user has been reported', value: await reportsCountSummary(sender), inline: true },
+      { name: 'This user has been reported', value: await reportsCountSummary(reportedUser.id), inline: true },
       { name: '\u200b', value: '\u200b' },
       {
         name: 'Message Link',
