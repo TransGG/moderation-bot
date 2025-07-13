@@ -6,6 +6,11 @@ export default interface snowflakeMap {
   Discord_Guilds?: string[];
 
   /**
+   * Grants access to staff commands that are enabled in the staff server
+   */
+  Staff_Server_Staff_Roles: string[];
+
+  /**
    * Stops staff from punishing other staff
    */
   Staff_Roles: string[];
