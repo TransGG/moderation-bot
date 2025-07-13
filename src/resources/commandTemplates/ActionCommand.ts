@@ -4,7 +4,8 @@ import {
   GuildMember,
   Message,
   User,
-  Colors
+  Colors,
+  GuildMemberRoleManager
 } from 'discord.js';
 import {
   SlashCommandBooleanOption,
@@ -399,6 +400,19 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply({ ephemeral: true });
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
+
+    const IS_STAFF_MEMBER =
+      interaction.member?.roles instanceof GuildMemberRoleManager ?
+        interaction.member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles) :
+
+        interaction.member?.roles instanceof Array ?
+          SNOWFLAKE_MAP.Staff_Roles.some(r => (<string[]>interaction.member?.roles).includes(r)) :
+          undefined;
+
+    if (!IS_STAFF_MEMBER) {
+      await interaction.followUp({ content: 'You do not have permission to use this command.', ephemeral: true });
+      return;
+    }
 
     // TODO: https://discord.com/channels/@me/960632564912115763/981297877131333642
     // get basic options

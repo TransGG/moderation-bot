@@ -23,13 +23,14 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     await interaction.deferReply({ ephemeral: true });
 
     const SNOWFLAKE_MAP = await getSnowflakeMap();
+    const ANY_SERVER_STAFF_ROLES = [...SNOWFLAKE_MAP.Staff_Roles, ...SNOWFLAKE_MAP.Staff_Server_Staff_Roles];
 
     const IS_STAFF_MEMBER =
       interaction.member?.roles instanceof GuildMemberRoleManager ?
-        interaction.member.roles.cache.hasAny(...SNOWFLAKE_MAP.Staff_Roles) :
+        interaction.member.roles.cache.hasAny(...ANY_SERVER_STAFF_ROLES) :
 
         interaction.member?.roles instanceof Array ?
-          SNOWFLAKE_MAP.Staff_Roles.some(r => (<string[]>interaction.member?.roles).includes(r)) :
+          ANY_SERVER_STAFF_ROLES.some(r => (<string[]>interaction.member?.roles).includes(r)) :
           undefined;
 
     if (!IS_STAFF_MEMBER) {
