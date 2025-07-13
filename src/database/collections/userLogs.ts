@@ -20,6 +20,7 @@ let cachedAltSwitchLogs: Map<string, string[]> | undefined;
 let cachedAltLogsAt = 0;
 
 async function fetchAltSwitchLogs() {
+  if (!config.Alt_Account_Sheet_URL) return new Map<string, string[]>();
   if (Date.now() - cachedAltLogsAt < 5 * 60 * 1000 && cachedAltSwitchLogs) return cachedAltSwitchLogs;
   const request = await fetch(config.Alt_Account_Sheet_URL);
   const text = request.ok ? await request.text() : '';
