@@ -8,6 +8,8 @@ import ModMessage from './mod/message.js';
 export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Quick Ban')
+  .setDefaultMemberPermissions('0')
+  .setDMPermission(false)
   .setResponse(async (interaction, _interactionHandler, _command) => {
 
     if (!interaction.isMessageContextMenuCommand()) return;

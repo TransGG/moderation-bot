@@ -9,6 +9,7 @@ import { getSnowflakeMap } from '@utils.js';
 export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('Report Message')
+  .setDMPermission(false)
   .setResponse(async (interaction, interactionHandler, _command) => {
     if (!interaction.isMessageContextMenuCommand()) return;
     interactionHandler.addComponent(MODALS.report);

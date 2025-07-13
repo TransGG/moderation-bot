@@ -8,6 +8,8 @@ import ModUser from './mod/user.js';
 export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User)
   .setName('Quick Ban User')
+  .setDefaultMemberPermissions('0')
+  .setDMPermission(false)
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isUserContextMenuCommand()) return;
     await interaction.deferReply({ ephemeral: true })

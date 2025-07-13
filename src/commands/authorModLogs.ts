@@ -9,6 +9,7 @@ export default new ResponsiveContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message)
   .setName('View Author\'s Mod Logs')
   .setDefaultMemberPermissions('0')
+  .setDMPermission(false)
   .setResponse(async (interaction, _interactionHandler, _command) => {
     if (!interaction.isMessageContextMenuCommand()) return;
     await interaction.deferReply({ ephemeral: true });
