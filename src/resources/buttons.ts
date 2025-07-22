@@ -4,10 +4,12 @@ import { getDirectoryFromFileURL, getModulesInFolder } from '@utils.js';
 import modLogActionRow from './buttons/moderationLog.js';
 import reportActionRow from './buttons/report.js'
 import toggleLog from './buttons/toggleLog.js'
+import selfTimeoutConfirm from './buttons/selfTimeoutConfirm.js';
 
 const BUTTONS = {
   modLogActionRow,
   reportActionRow,
+  selfTimeoutConfirm,
   toggleLog
 };
 
