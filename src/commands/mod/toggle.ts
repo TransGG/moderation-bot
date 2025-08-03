@@ -40,8 +40,6 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       return;
     }
 
-    BUTTONS.toggleLog.components.forEach(i => _interactionHandler.addComponent(i));
-
     const user = interaction.options.getUser('user', true);
     const infraction = interaction.options.getString('infraction', true);
 
@@ -53,11 +51,12 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       return;
     }
 
+    const actionRow = BUTTONS.toggleLog(LOG.isHidden);
+    actionRow.components.forEach(i => _interactionHandler.addComponent(i));
+
     await interaction.followUp({
-      embeds: [await EMBEDS.toggleLog(user, infraction)],
-      components: [
-        BUTTONS.toggleLog
-      ],
-      ephemeral: true
+      embeds: [await EMBEDS.toggleLog(user, infraction, LOG)],
+      components: [BUTTONS.toggleLog(LOG.isHidden)],
+      ephemeral: true,
     });
   });

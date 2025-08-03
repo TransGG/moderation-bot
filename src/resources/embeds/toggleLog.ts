@@ -1,6 +1,6 @@
 import { EmbedBuilder, User } from 'discord.js';
-import COLLECTIONS from '@database/collections.js';
 import { getRules } from '@utils.js';
+import type ModerationLog from '@database/collections/userLogs/moderationLogs.js';
 
 // TODO: give more info and polish layout
 
@@ -14,16 +14,8 @@ const pastTenseActions: Record<string, string> = {
   add_mature: 'Received the mature role', // legacy
 }
 
-export default async function toggleLog(user: User, infraction: string) {
-  const LOGS = (await COLLECTIONS.UserLog.getUserLog(user.id)).moderationLogs;
-
-  const LOG = LOGS[parseInt(infraction) - 1];
-
+export default async function toggleLog(user: User, infraction: string, LOG: ModerationLog) {
   const RULES = await getRules();
-
-  if (LOG === undefined) {
-    return new EmbedBuilder().setDescription('Infraction not found');
-  }
 
   const rule = RULES[LOG.rule];
   const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${LOG.rule})` : `Deleted rule (${LOG.rule})`;
@@ -39,7 +31,7 @@ export default async function toggleLog(user: User, infraction: string) {
 
   const EMBED = new EmbedBuilder()
     .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
-    .setDescription(`> <@${user.id}> (\`${user.username}\`)`)
+    .setDescription(`> <@${user.id}> (\`${user.username}\`)\n(currently ${LOG.isHidden ? 'hidden' : 'shown'})`)
     .setFooter({ text: `Infraction ID: ${infraction}` })
     .addFields([
       {
