@@ -18,16 +18,19 @@ async function getModerationLogsPages(user: User, showHidden: boolean, showPage:
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
 
   const LOGS = await COLLECTIONS.UserLog.getUserAndConnectedLogs(user.id);
+
+  let index = 0;
+
   const entries = LOGS
     .flatMap((log) => log.moderationLogs.map((entry) => ({ userID: log.userID, ...entry })))
-    .sort((a, b) => a.timestamp - b.timestamp);
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map((log) => ({ ...log, index: log.userID === user.id ? (++index).toString() : '[alt]' }))
+    .filter((log) => !log.isHidden || showHidden);
 
   const PAGES = Math.ceil(entries.length / LPP);
   const RULES = await getRules();
 
   const SLICE = showPage ? entries.slice(showPage * LPP, (showPage + 1) * LPP) : entries;
-
-  let index = (showPage ?? 0) * LPP;
 
   return new Array(Math.ceil(SLICE.length / LPP)).fill(0).map((_, page) => new EmbedBuilder()
     .setAuthor(page === 0 ? { name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` } : null)
@@ -45,12 +48,11 @@ async function getModerationLogsPages(user: User, showHidden: boolean, showPage:
         messageDeletedText = log.keepMessage ? 'Message not deleted' : 'Message Deleted';
       }
 
-      if (log.userID === user.id) index++;
       if (log.isHidden == true && showHidden == false) return [];
 
       return [
         {
-          name: `${log.userID === user.id ? index : '[alt]'}. ${ruleText}`,
+          name: `${log.index}. ${ruleText}`,
           value: log.reason,
           inline: true
         },
