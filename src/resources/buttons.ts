@@ -5,12 +5,14 @@ import modLogActionRow from './buttons/moderationLog.js';
 import reportActionRow from './buttons/report.js'
 import toggleLog from './buttons/toggleLog.js'
 import selfTimeoutConfirm from './buttons/selfTimeoutConfirm.js';
+import sendPubliclyButton from './buttons/sendPubliclyButton.js';
 
 const BUTTONS = {
   modLogActionRow,
   reportActionRow,
   selfTimeoutConfirm,
-  toggleLog
+  toggleLog,
+  sendPubliclyButton,
 };
 
 // TODO: a more centralised way to reload?

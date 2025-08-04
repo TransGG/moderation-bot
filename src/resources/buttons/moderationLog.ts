@@ -14,7 +14,7 @@ function get_page_info(embed: Embed) {
   };
 }
 
-async function get_log_user(client: Client, embed: Embed) {
+export async function get_log_user(client: Client, embed: Embed) {
   const regex = /> <@([0-9]+)>/gm;
   const match = regex.exec(embed.description as string);
   if (!match || !match[1]) return undefined;
@@ -22,7 +22,7 @@ async function get_log_user(client: Client, embed: Embed) {
   return await client.users.fetch(match[1]);
 }
 
-function get_showing_hidden(embed: Embed) {
+export function get_showing_hidden(embed: Embed) {
   const regex = /Showing Hidden: (true|false)/gm;
   const match = regex.exec(embed.footer?.text as string);
   if (!match) return false;

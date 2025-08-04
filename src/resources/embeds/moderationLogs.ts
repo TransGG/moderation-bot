@@ -14,21 +14,22 @@ const pastTenseActions: Record<string, string> = {
   add_mature: 'Received the mature role', // legacy
 }
 
-export default async function moderationLogs(user: User, showHidden = false, page = 1) {
+async function getModerationLogsPages(user: User, showHidden: boolean, showPage: number | null, requester: User | null) {
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
 
   const LOGS = await COLLECTIONS.UserLog.getUserAndConnectedLogs(user.id);
   const entries = LOGS.flatMap((log) => log.moderationLogs.map((entry) => ({ userID: log.userID, ...entry }))).sort((a, b) => a.timestamp - b.timestamp);
 
   const PAGES = Math.ceil(entries.length / LPP);
-  const STARTING_INDEX = (page - 1) * LPP;
   const RULES = await getRules();
 
-  const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` })
-    .setDescription(`> <@${user.id}> (\`${user.username}\`)`)
-    .setFooter({ text: `Page ${page} of ${PAGES ? PAGES : 1} | Showing Hidden: ${showHidden}` })
-    .addFields(entries.slice(STARTING_INDEX, STARTING_INDEX + LPP).map((log, index) => {
+  const SLICE = showPage ? entries.slice(showPage * LPP, (showPage + 1) * LPP) : entries;
+
+  return new Array(Math.ceil(SLICE.length / LPP)).fill(0).map((_, page) => new EmbedBuilder()
+    .setAuthor(page === 0 ? { name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` } : null)
+    .setDescription(page === 0 ? `> <@${user.id}> (\`${user.username}\`)` : null)
+    .setFooter({ text: `Page ${(showPage ?? page) + 1} of ${PAGES ? PAGES : 1} | Showing Hidden: ${showHidden} ${requester ? `| Requested by: ${requester.username} (${requester.id})` : ''}`})
+    .addFields(SLICE.slice(page * LPP, (page + 1) * LPP).map((log, index) => {
       const rule = RULES[log.rule];
       const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule})` : `Deleted rule (${log.rule})`;
       let messageDeletedText: string;
@@ -44,7 +45,7 @@ export default async function moderationLogs(user: User, showHidden = false, pag
 
       return [
         {
-          name: `${STARTING_INDEX + index + 1}. ${ruleText}`,
+          name: `${(showPage ?? page) * LPP + index + 1}. ${ruleText}`,
           value: log.reason,
           inline: true
         },
@@ -59,6 +60,15 @@ export default async function moderationLogs(user: User, showHidden = false, pag
           inline: true
         }
       ]
-    }).flat());
-  return EMBED;
+    }).flat()),
+  );
+}
+
+export default async function moderationLogs(user: User, showHidden = false, page = 1) {
+  const singletonArray = await getModerationLogsPages(user, showHidden, page - 1, null);
+  return singletonArray[0] ?? new EmbedBuilder().setDescription('Function `getModerationLogsPages` returned `[]`, tell the devs');
+}
+
+export async function moderationAllLogs(user: User, showHidden = false, requester: User) {
+  return await getModerationLogsPages(user, showHidden, null, requester);
 }
