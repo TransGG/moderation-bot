@@ -18,18 +18,22 @@ async function getModerationLogsPages(user: User, showHidden: boolean, showPage:
   const LPP = (await getCustomisations()).Moderation_Logs_Per_Page;
 
   const LOGS = await COLLECTIONS.UserLog.getUserAndConnectedLogs(user.id);
-  const entries = LOGS.flatMap((log) => log.moderationLogs.map((entry) => ({ userID: log.userID, ...entry }))).sort((a, b) => a.timestamp - b.timestamp);
+  const entries = LOGS
+    .flatMap((log) => log.moderationLogs.map((entry) => ({ userID: log.userID, ...entry })))
+    .sort((a, b) => a.timestamp - b.timestamp);
 
   const PAGES = Math.ceil(entries.length / LPP);
   const RULES = await getRules();
 
   const SLICE = showPage ? entries.slice(showPage * LPP, (showPage + 1) * LPP) : entries;
 
+  let index = (showPage ?? 0) * LPP;
+
   return new Array(Math.ceil(SLICE.length / LPP)).fill(0).map((_, page) => new EmbedBuilder()
     .setAuthor(page === 0 ? { name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` } : null)
     .setDescription(page === 0 ? `> <@${user.id}> (\`${user.username}\`)` : null)
     .setFooter({ text: `Page ${(showPage ?? page) + 1} of ${PAGES ? PAGES : 1} | Showing Hidden: ${showHidden} ${requester ? `| Requested by: ${requester.username} (${requester.id})` : ''}`})
-    .addFields(SLICE.slice(page * LPP, (page + 1) * LPP).map((log, index) => {
+    .addFields(SLICE.slice(page * LPP, (page + 1) * LPP).map((log) => {
       const rule = RULES[log.rule];
       const ruleText = rule !== undefined ? `Rule ${rule?.ruleNumber} (${log.rule})` : `Deleted rule (${log.rule})`;
       let messageDeletedText: string;
@@ -41,11 +45,12 @@ async function getModerationLogsPages(user: User, showHidden: boolean, showPage:
         messageDeletedText = log.keepMessage ? 'Message not deleted' : 'Message Deleted';
       }
 
+      if (log.userID === user.id) index++;
       if (log.isHidden == true && showHidden == false) return [];
 
       return [
         {
-          name: `${(showPage ?? page) * LPP + index + 1}. ${ruleText}`,
+          name: `${log.userID === user.id ? index : '[alt]'}. ${ruleText}`,
           value: log.reason,
           inline: true
         },
