@@ -5,7 +5,8 @@ import {
   Message,
   User,
   Colors,
-  GuildMemberRoleManager
+  GuildMemberRoleManager,
+  CommandInteraction
 } from 'discord.js';
 import {
   SlashCommandBooleanOption,
@@ -141,11 +142,11 @@ async function validateDuration(
   // duration must be specific only if the action is a timeout
   const ACTION = options['action'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('action', true) : null);
   if (ACTION === null) throw new Error('ACTION must be defined either by using a CommandInteraction or an OverrideActionOptions with it set');
-  if (ACTION !== 'timeout' && ACTION !== 'ban') return [true, undefined];
+  if (ACTION !== 'timeout' && ACTION !== 'ban' && ACTION !== 'kick') return [true, undefined];
 
   const INPUT = options['duration'] ?? (interaction.isChatInputCommand() ? interaction.options.getString('duration', false) : null);
   if (!INPUT)
-    if (ACTION === 'ban')
+    if (ACTION === 'ban' || ACTION === 'kick')
       return [true, 0];
     else {
       await interaction.followUp({
@@ -189,7 +190,7 @@ async function validateDuration(
       }
     }
 
-  if (ACTION === 'ban')
+  if (ACTION === 'ban' || ACTION === 'kick')
     duration = Math.min(duration, durations.week); // Bans can delete messages for no longer than 1 week
   else if (ACTION === 'timeout')
     duration = Math.min(duration, 28 * durations.day); // Timeouts can be for no longer than 28 days
@@ -277,13 +278,13 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     [
       APIApplicationCommandOptionChoice<string>,
       (member: GuildMember) => Promise<boolean>,
-      (member: GuildMember, reason: string) => Promise<boolean>,
+      (member: GuildMember, reason: string, duration: number | undefined, interaction: CommandInteraction) => Promise<boolean>,
       ExtraActionOptions
     ],
     [
       APIApplicationCommandOptionChoice<string>,
       (member: GuildMember) => Promise<boolean>,
-      (member: GuildMember, reason: string, days?: number) => Promise<boolean>,
+      (member: GuildMember, reason: string, duration?: number) => Promise<boolean>,
       ExtraActionOptions
     ],
   ] = [
@@ -354,11 +355,27 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           value: 'kick',
         },
         async (member) => {
-          return member.kickable;
+          return member.kickable && member.bannable; // both are required since kicking with purge will internally ban
         },
-        async (member, reason) => {
-          if (!member.kickable) return false;
-          return !!(await member.kick(reason));
+        async (member, reason, DURATION = 0, interaction) => {
+          if (DURATION === 0) {
+            if (!member.kickable) return false;
+            return !!(await member.kick(reason));
+          } else {
+            if (!member.bannable) return false;
+
+            const banned = !!(await member.ban({ reason, deleteMessageSeconds: Math.trunc(DURATION / 1000) }));
+
+            if (banned)
+              member.guild.bans.remove(member, 'revert temporary ban used for kick-with-purge').catch(() => {
+                interaction.followUp({
+                  content: '**[error]** the user was banned to purge their messages but could not be unbanned, please investigate and resolve',
+                  ephemeral: true,
+                });
+              });
+
+            return banned;
+          }
         },
         { sendNoticeFirst: true, emoji: ':boot:', pastTense: 'Kicked', color: Colors.Red },
       ],
@@ -508,13 +525,20 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     if (!KEEP_MESSAGE && message?.deletable) await message.delete();
 
     if (!member) {
-      if (ACTION === 'ban') {
-
+      if (ACTION === 'ban' || (ACTION === 'kick' && DURATION)) {
         try {
           const bannedUser = await interaction.guild?.members.ban(USER.id, {
             reason: REASON,
             deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0,
           });
+
+          await interaction.guild?.bans.remove(USER.id, 'revert temporary ban used for kick-with-purge').catch(() => {
+            interaction.followUp({
+              content: '**[error]** the user was banned to purge their messages but could not be unbanned, please investigate and resolve',
+              ephemeral: true,
+            });
+          });
+
           const LOG = await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,
             USER,
@@ -528,7 +552,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
           );
           await sendToLogChannel(interaction.client, USER, LOG, action[3]);
           await interaction.followUp({
-            content: `Banned out-of-server member ${typeof bannedUser === 'object'
+            content: `${ACTION === 'ban' ? 'Banned' : 'Purge-kicked'} out-of-server member ${typeof bannedUser === 'object'
               ? `${(bannedUser as User).tag} (${bannedUser.id})`
               : bannedUser
             }`,
@@ -603,7 +627,7 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
     await sendToLogChannel(interaction.client, USER, LOG, action[3]);
     if (action[3].sendNoticeFirst && !action[3].noNotice) await sendNotice(USER, LOG, interaction);
 
-    if (!(await action[2](member, REASON, DURATION))) {
+    if (!(await action[2](member, REASON, DURATION, interaction))) {
       await interaction.followUp({
         content:
           'Something went wrong while trying to punish the user, please make sure you have permission',
