@@ -14,7 +14,7 @@ const pastTenseActions: Record<string, string> = {
   add_mature: 'Received the mature role', // legacy
 }
 
-export default async function toggleLogNotice(user: User, infraction: string, moderator: User) {
+export default async function toggleLogNotice(user: User, infraction: string, moderator: User, reason: string, hidden: boolean) {
   const LOGS = (await COLLECTIONS.UserLog.getUserLog(user.id)).moderationLogs;
 
   const LOG = LOGS[parseInt(infraction) - 1];
@@ -38,7 +38,7 @@ export default async function toggleLogNotice(user: User, infraction: string, mo
   }
 
   const EMBED = new EmbedBuilder()
-    .setAuthor({ name: 'Log toggled by ', iconURL: moderator.displayAvatarURL(), url: `https://discord.com/users/${moderator.id}` })
+    .setAuthor({ name: `Log toggled (now ${hidden ? 'hidden' : 'shown'}) by`, iconURL: moderator.displayAvatarURL(), url: `https://discord.com/users/${moderator.id}` })
     .setDescription(`> <@${moderator.id}> (\`${moderator.username}\`)`)
     .setFooter({ text: `Moderated User: @${user.username} (${user.id})` })
     .addFields([
@@ -56,6 +56,10 @@ export default async function toggleLogNotice(user: User, infraction: string, mo
         name: `${pastTenseActions[LOG.action] ?? 'ERROR'} <t:${Math.floor(LOG.timestamp / 1000)}:R>`,
         value: messageDeletedText,
         inline: true
+      },
+      {
+        name: 'Reason',
+        value: reason
       }
     ]);
   return EMBED;
