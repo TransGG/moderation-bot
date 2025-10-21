@@ -69,7 +69,7 @@ export default class ModerationLog {
 
     this.rule = rule;
     if (privateNotes) this.privateNotes = privateNotes;
-    if ((action === 'timeout' || action === 'ban') && duration) this.duration = duration;
+    if ((action === 'timeout' || action === 'ban' || action === 'kick') && duration) this.duration = duration;
     if (keepMessage) this.keepMessage = keepMessage;
     if (message) this.messageInfo = getMessageInfo(message);
   }

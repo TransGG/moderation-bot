@@ -22,12 +22,12 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     .setMaxValue(100)
   )
   .addStringOption(new SlashCommandStringOption()
-    .setName('first')
-    .setDescription('The ID of the first message to purge.')
+    .setName('earliest')
+    .setDescription('The ID of the least recent (topmost, first) message to purge.')
   )
   .addStringOption(new SlashCommandStringOption()
-    .setName('last')
-    .setDescription('The ID of the last message to purge.')
+    .setName('latest')
+    .setDescription('The ID of the most recent (bottommost, last) message to purge.')
   )
   .addUserOption(new SlashCommandUserOption()
     .setName('user')
@@ -84,9 +84,9 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     const amount = interaction.options.getInteger('amount', false);
 
-    const first = interaction.options.getString('first', false);
+    const earliest = interaction.options.getString('earliest', false);
 
-    const last = interaction.options.getString('last', false);
+    const latest = interaction.options.getString('latest', false);
 
     const user = interaction.options.getUser('user', false);
 
@@ -96,18 +96,18 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
 
     const postPublicNotice = interaction.options.getBoolean('post-public-notice', false);
 
-    if (amount && first && last) {
+    if (amount && earliest && latest) {
       await interaction.followUp({
-        content: 'You cannot specify the amount of messages to purge if you also select a first and last message.',
+        content: 'You cannot specify the amount of messages to purge if you also select an earliest and latest message.',
         ephemeral: true
       });
 
       return;
     }
 
-    if (!(amount || first && last)) {
+    if (!(amount || earliest && latest)) {
       await interaction.followUp({
-        content: 'You must either specify an amount of messages or both the first and last message.',
+        content: 'You must either specify an amount of messages or both the earliest and latest message.',
         ephemeral: true
       });
 
@@ -127,7 +127,7 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       );
     }
 
-    const messages = await getMessagesToPurge(interaction.channel, amount, first, last);
+    const messages = await getMessagesToPurge(interaction.channel, amount, earliest, latest);
     const user_filtered_messages = user ? messages.filter(m => m.author.id === user.id) : messages;
     const filtered_messages = user_filtered_messages.filter(m => m.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 14 + 10000);
 
@@ -208,18 +208,18 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
     });
   });
 
-async function getMessagesToPurge(channel: GuildTextBasedChannel, amount: number | null, first: string | null, last: string | null): Promise<Message[]> {
-  const messages = first && last ? [
-    await channel.messages.fetch(first).catch(() => []),
-    await channel.messages.fetch(last).catch(() => []),
-    ...(await channel.messages.fetch({ after: first, before: last })).values()
-  ].flat().filter(m => m.createdTimestamp <= SnowflakeUtil.timestampFrom(last))
-    : first && amount ? [
-      await channel.messages.fetch(first).catch(() => []),
-      ...(await channel.messages.fetch({ after: first, limit: amount - 1 })).values()
-    ].flat() : last && amount ? [
-      await channel.messages.fetch(last).catch(() => []),
-      ...(await channel.messages.fetch({ before: last, limit: amount - 1 })).values()
+async function getMessagesToPurge(channel: GuildTextBasedChannel, amount: number | null, earliest: string | null, latest: string | null): Promise<Message[]> {
+  const messages = earliest && latest ? [
+    await channel.messages.fetch(earliest).catch(() => []),
+    await channel.messages.fetch(latest).catch(() => []),
+    ...(await channel.messages.fetch({ after: earliest, before: latest })).values()
+  ].flat().filter(m => m.createdTimestamp <= SnowflakeUtil.timestampFrom(latest))
+    : earliest && amount ? [
+      await channel.messages.fetch(earliest).catch(() => []),
+      ...(await channel.messages.fetch({ after: earliest, limit: amount - 1 })).values()
+    ].flat() : latest && amount ? [
+      await channel.messages.fetch(latest).catch(() => []),
+      ...(await channel.messages.fetch({ before: latest, limit: amount - 1 })).values()
     ].flat() : amount ? [
       ...(await channel.messages.fetch({ limit: amount })).values()
     ] : [];

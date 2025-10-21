@@ -66,7 +66,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
       }]);
     }
 
-    if (log.action === 'ban') {
+    if (log.action === 'ban' || log.action === 'kick') {
       EMBED.addFields([{
         name: 'Deleted Messages For',
         value: `> ${duration}`,
