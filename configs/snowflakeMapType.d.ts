@@ -54,6 +54,12 @@ export default interface snowflakeMap {
   Mod_Logs_Channels: Record<string, string[]>;
 
   /**
+   * Channels where /mod logs should show a "send publicly" button (will work in
+   * all child channels)
+   */
+  Allow_Public_Mod_Logs_Channels: string[];
+
+  /**
    * A list of roles that members verified with /mod user verify should be given
    * Often this will be the same role that you use in your regular verification
    * system, however you may want to add multiple roles (i.e. to track who was

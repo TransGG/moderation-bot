@@ -2,7 +2,7 @@ import { SlashCommandUserOption, SlashCommandBooleanOption} from '@discordjs/bui
 import { ResponsiveSlashCommandSubcommandBuilder } from '@interactionHandling/commandBuilders.js';
 import EMBEDS from '@resources/embeds.js';
 import BUTTONS from '@resources/buttons.js';
-import { GuildMemberRoleManager } from 'discord.js';
+import { GuildMemberRoleManager, type Channel } from 'discord.js';
 import { getSnowflakeMap } from '@utils.js';
 
 export default new ResponsiveSlashCommandSubcommandBuilder()
@@ -38,12 +38,27 @@ export default new ResponsiveSlashCommandSubcommandBuilder()
       return;
     }
 
+    let SHOW_SEND_PUBLICLY_BUTTON = false;
+
+    let current: Channel | null = interaction.channel;
+
+    while (current) {
+      if (SNOWFLAKE_MAP.Allow_Public_Mod_Logs_Channels.includes(current.id)) {
+        SHOW_SEND_PUBLICLY_BUTTON = true;
+        break;
+      }
+
+      current = current.isDMBased() ? null : current.parent;
+    }
+
     BUTTONS.modLogActionRow.components.forEach(i => _interactionHandler.addComponent(i));
+    if (SHOW_SEND_PUBLICLY_BUTTON) BUTTONS.sendPubliclyButton.components.forEach(i => _interactionHandler.addComponent(i));
 
     await interaction.followUp({
       embeds: [await EMBEDS.moderationLogs(interaction.options.getUser('user', true), interaction.options.getBoolean('show-hidden', false) || false)],
       components: [
-        BUTTONS.modLogActionRow
+        BUTTONS.modLogActionRow,
+        ...(SHOW_SEND_PUBLICLY_BUTTON ? [BUTTONS.sendPubliclyButton] : []),
       ],
       ephemeral: true
     });
