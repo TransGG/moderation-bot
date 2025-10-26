@@ -532,12 +532,13 @@ export default class ActionCommand extends ResponsiveSlashCommandSubcommandBuild
             deleteMessageSeconds: DURATION ? Math.trunc(DURATION / 1000) : 0,
           });
 
-          await interaction.guild?.bans.remove(USER.id, 'revert temporary ban used for kick-with-purge').catch(() => {
-            interaction.followUp({
-              content: '**[error]** the user was banned to purge their messages but could not be unbanned, please investigate and resolve',
-              ephemeral: true,
+          if (ACTION === 'kick')
+            await interaction.guild?.bans.remove(USER.id, 'revert temporary ban used for kick-with-purge').catch(() => {
+              interaction.followUp({
+                content: '**[error]** the user was banned to purge their messages but could not be unbanned, please investigate and resolve',
+                ephemeral: true,
+              });
             });
-          });
 
           const LOG = await COLLECTIONS.UserLog.newModLog(
             interaction.user.id,
