@@ -32,7 +32,7 @@ async function getModerationLogsPages(user: User, showHidden: boolean, showPage:
 
   const SLICE = showPage ? entries.slice(showPage * LPP, (showPage + 1) * LPP) : entries;
 
-  return new Array(Math.ceil(SLICE.length / LPP)).fill(0).map((_, page) => new EmbedBuilder()
+  return new Array(Math.max(1, Math.ceil(SLICE.length / LPP))).fill(0).map((_, page) => new EmbedBuilder()
     .setAuthor(page === 0 ? { name: 'Logs for', iconURL: user.displayAvatarURL(), url: `https://discord.com/users/${user.id}` } : null)
     .setDescription(page === 0 ? `> <@${user.id}> (\`${user.username}\`)` : null)
     .setFooter({ text: `Page ${(showPage ?? page) + 1} of ${PAGES ? PAGES : 1} | Showing Hidden: ${showHidden} ${requester ? `| Requested by: ${requester.username} (${requester.id})` : ''}`})
