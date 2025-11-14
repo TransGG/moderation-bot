@@ -1,6 +1,8 @@
 import { Colors, EmbedBuilder } from 'discord.js';
 import type COLLECTIONS from '@database/collections.js';
-import { getRules } from '@utils.js';
+import { getCoreConf, getRules } from '@utils.js';
+
+const CORE_CONF = await getCoreConf();
 
 export default async function moderationNotice(log: InstanceType<typeof COLLECTIONS.ModerationLog>) {
   // TODO: more centralized actions definition? possibly add them to templates.actionCommand.ts
@@ -42,9 +44,9 @@ export default async function moderationNotice(log: InstanceType<typeof COLLECTI
     inline: false
   }]);
 
-  if (log.action === 'ban') EMBED.addFields([{
+  if (log.action === 'ban' && CORE_CONF.Ban_Appeal_Form_URL !== null) EMBED.addFields([{
     name: 'Appeal this ban',
-    value: 'Please use [this google form](https://docs.google.com/forms/d/e/1FAIpQLSdDGRf6T5_8Dckf_c-8TIJFOLrqALQ6k5zc6EjGpMRJs-Q7pw/viewform)',
+    value: `Please use [this google form](${CORE_CONF.Ban_Appeal_Form_URL})`,
   }])
 
   return EMBED;

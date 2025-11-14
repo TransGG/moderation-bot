@@ -12,7 +12,10 @@ const config: snowflakeMap = {
   Verified_Roles: [],
   Image_Ban_Roles: [],
   Support_Channel: '',
-  Mod_Editable_Roles: {}
+  Mod_Editable_Roles: {},
+  Staff_Server_Staff_Roles: [],
+  Allow_Public_Mod_Logs_Channels: [],
+  Time_Capsule_Roles: {}
 }
 
 export default config;
