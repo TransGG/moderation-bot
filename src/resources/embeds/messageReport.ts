@@ -45,7 +45,7 @@ export default async function messageReport(reporter: User, reportedUser: User, 
   if (message.content) EMBED.addFields([
     {
       name: 'Reported Message Content',
-      value: message.content,
+      value: message.content.slice(0, 1024),
       inline: false
     }
   ]);
@@ -53,7 +53,7 @@ export default async function messageReport(reporter: User, reportedUser: User, 
   if (message.attachments.size) EMBED.addFields([
     {
       name: 'Reported Message Attachments',
-      value: message.attachments.map(a => a.url).join('\n'),
+      value: message.attachments.map(a => a.url).join('\n').slice(0, 1024),
       inline: false
     }
   ]);
