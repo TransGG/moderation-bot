@@ -113,7 +113,7 @@ export default async function logNotice(client: Client, user: User, log: Instanc
 
       EMBED.addFields([{
         name: 'Infracting Message Attachments',
-        value: `> ${attachments_list?.join() ?? 'none'}`,
+        value: `> ${attachments_list?.join() ?? 'none'}`.slice(0, 1024), // hacky fix but this bot will be rewritten soon anyway and V2 will change how this needs to be handled anyway
       }]);
     }
   }
